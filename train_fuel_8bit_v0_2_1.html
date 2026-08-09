@@ -1,0 +1,558 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>TRAIN//FUEL 8BIT v0.2</title>
+<style>
+:root{
+  --bg:#d9e7a6;
+  --panel:#c5d98d;
+  --ink:#1d2a16;
+  --mid:#556b2f;
+  --light:#eef5cf;
+  --shadow:#8ea05a;
+}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--bg);color:var(--ink);font-family:"Courier New",monospace}
+body{
+  min-height:100vh;
+  background:
+    linear-gradient(90deg,rgba(29,42,22,.04) 1px,transparent 1px) 0 0/8px 8px,
+    linear-gradient(rgba(29,42,22,.04) 1px,transparent 1px) 0 0/8px 8px,
+    var(--bg);
+}
+button,input,select,textarea{font:inherit}
+button{cursor:pointer}
+a{color:inherit}
+.app{max-width:1180px;margin:0 auto;padding:14px}
+
+.topbar{
+  display:flex;justify-content:space-between;gap:14px;align-items:center;
+  border:4px solid var(--ink);background:var(--panel);padding:12px 14px;
+  box-shadow:6px 6px 0 var(--ink);margin-bottom:16px
+}
+.brandwrap{display:flex;gap:12px;align-items:center;min-width:0}
+.logo-skull{
+  width:58px;height:58px;flex:0 0 58px;
+  image-rendering:pixelated;
+}
+.brand{font-weight:900;font-size:clamp(22px,4vw,38px);letter-spacing:-2px;white-space:nowrap}
+.subtitle{font-size:12px}
+.clock{text-align:right;font-weight:700;white-space:nowrap}
+
+.tabs{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px}
+.tab{
+  border:3px solid var(--ink);background:var(--light);padding:9px 12px;
+  box-shadow:3px 3px 0 var(--ink);font-weight:900
+}
+.tab.active{background:var(--ink);color:var(--light);box-shadow:none;transform:translate(3px,3px)}
+.screen{display:none}.screen.active{display:block}
+.grid{display:grid;grid-template-columns:1.2fr .8fr;gap:16px}
+.card{
+  border:4px solid var(--ink);background:var(--panel);padding:14px;
+  box-shadow:5px 5px 0 var(--ink)
+}
+.card h2,.card h3{margin:0 0 10px}
+.pixel-line{height:4px;background:var(--ink);margin:8px 0 12px}
+.hero{display:flex;justify-content:space-between;gap:12px;align-items:flex-end;margin-bottom:12px}
+.daytitle{font-size:clamp(25px,5vw,44px);font-weight:900}
+.badge{display:inline-block;border:3px solid var(--ink);padding:5px 8px;background:var(--light);font-weight:900}
+
+.timeline{display:grid;gap:10px}
+.event{
+  border:3px solid var(--ink);background:var(--light);
+  display:grid;grid-template-columns:112px 1fr auto;gap:10px;align-items:center;padding:10px
+}
+.event.now{outline:5px double var(--mid)}
+.event .time{font-weight:900}
+.event .title{font-weight:900}
+.event small{display:block;margin-top:3px;line-height:1.35}
+.kind{border:2px solid var(--ink);padding:4px 6px;font-size:12px;font-weight:900}
+.nextbox{border:4px solid var(--ink);background:var(--ink);color:var(--light);padding:14px;margin-bottom:14px}
+.barwrap{margin-top:8px}
+.barlabel{display:flex;justify-content:space-between;gap:8px}
+.bar{border:3px solid var(--ink);height:18px;background:var(--light);padding:2px}
+.bar>span{display:block;height:100%;background:var(--ink)}
+
+.weekgrid{display:grid;grid-template-columns:repeat(7,1fr);gap:9px}
+.daycol{border:3px solid var(--ink);background:var(--light);padding:8px;min-height:220px}
+.daycol h3{font-size:14px;margin-bottom:8px}
+.mini{border-top:2px solid var(--ink);padding:7px 0;font-size:12px}
+.mini:first-of-type{border-top:0}
+
+.editorgrid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.field{display:grid;gap:5px}
+.field input,.field select,.field textarea{
+  width:100%;border:3px solid var(--ink);background:var(--light);padding:9px;color:var(--ink)
+}
+.field textarea{min-height:90px;resize:vertical}
+.btn{
+  border:3px solid var(--ink);background:var(--light);padding:9px 12px;
+  box-shadow:3px 3px 0 var(--ink);font-weight:900
+}
+.btn.primary{background:var(--ink);color:var(--light)}
+.row{display:flex;gap:8px;flex-wrap:wrap}
+.exercise{border:3px solid var(--ink);background:var(--light);padding:10px;margin:8px 0}
+.exercise-head{display:flex;justify-content:space-between;gap:8px;align-items:center}
+.sets{display:flex;gap:7px;flex-wrap:wrap;margin-top:8px}
+.set{
+  width:34px;height:34px;border:3px solid var(--ink);background:var(--panel);
+  display:grid;place-items:center;font-weight:900
+}
+.set.done{background:var(--ink);color:var(--light)}
+.note{font-size:12px;opacity:.85;line-height:1.4}
+.footer{
+  margin:20px 0 8px;text-align:center;font-size:12px;
+  border-top:3px solid var(--ink);padding-top:12px
+}
+.footer a{font-weight:900;text-decoration:none;border-bottom:2px solid var(--ink)}
+
+@media(max-width:860px){
+  .grid{grid-template-columns:1fr}
+  .weekgrid{grid-template-columns:1fr 1fr}
+  .editorgrid{grid-template-columns:1fr}
+}
+@media(max-width:560px){
+  .app{padding:9px}
+  .topbar{padding:9px 10px;box-shadow:4px 4px 0 var(--ink);align-items:flex-start}
+  .logo-skull{width:46px;height:46px;flex-basis:46px}
+  .brand{font-size:24px}
+  .subtitle{font-size:10px}
+  .clock{font-size:12px}
+  .tabs{display:grid;grid-template-columns:1fr 1fr}
+  .tab{width:100%;padding:10px 6px}
+  .event{grid-template-columns:1fr auto;gap:6px}
+  .event .time{grid-column:1/-1;font-size:12px;opacity:.8}
+  .kind{grid-column:2;grid-row:2;align-self:start}
+  .weekgrid{grid-template-columns:1fr}
+  .card{box-shadow:4px 4px 0 var(--ink);padding:11px}
+  .hero{align-items:flex-start}
+  .daytitle{font-size:30px}
+  .exercise-head{align-items:flex-start;flex-direction:column}
+}
+</style>
+</head>
+<body>
+<div class="app">
+  <header class="topbar">
+    <div class="brandwrap">
+      <!-- Caveira pixel em SVG inline para manter o HTML autocontido -->
+      <svg class="logo-skull" viewBox="0 0 16 16" aria-label="Caveira pixel" role="img">
+        <rect width="16" height="16" fill="none"/>
+        <g fill="currentColor">
+          <rect x="5" y="1" width="6" height="1"/>
+          <rect x="3" y="2" width="10" height="1"/>
+          <rect x="2" y="3" width="12" height="6"/>
+          <rect x="3" y="9" width="10" height="2"/>
+          <rect x="4" y="11" width="8" height="2"/>
+          <rect x="5" y="13" width="2" height="2"/>
+          <rect x="9" y="13" width="2" height="2"/>
+        </g>
+        <g fill="var(--panel)">
+          <rect x="4" y="5" width="3" height="2"/>
+          <rect x="9" y="5" width="3" height="2"/>
+          <rect x="7" y="8" width="2" height="2"/>
+          <rect x="6" y="11" width="1" height="1"/>
+          <rect x="8" y="11" width="1" height="1"/>
+          <rect x="10" y="11" width="1" height="1"/>
+        </g>
+      </svg>
+      <div>
+        <div class="brand">TRAIN//FUEL</div>
+        <div class="subtitle">8BIT TRAINING OS · v0.2</div>
+      </div>
+    </div>
+    <div class="clock">
+      <div id="todayDate">--</div>
+      <div id="liveClock">--:--</div>
+    </div>
+  </header>
+
+  <nav class="tabs">
+    <button class="tab active" data-tab="today">TODAY</button>
+    <button class="tab" data-tab="week">WEEK</button>
+    <button class="tab" data-tab="workout">WORKOUT</button>
+    <button class="tab" data-tab="edit">EDIT</button>
+  </nav>
+
+  <section id="today" class="screen active">
+    <div class="grid">
+      <div class="card">
+        <div class="hero">
+          <div>
+            <div class="badge" id="cycleBadge">WEEK 01</div>
+            <div class="daytitle" id="dayTitle">HOJE</div>
+          </div>
+          <div class="badge" id="loadBadge">MOD</div>
+        </div>
+
+        <div class="nextbox">
+          <div class="note">NEXT MISSION</div>
+          <div id="nextMission" style="font-size:22px;font-weight:900;margin-top:5px">--</div>
+        </div>
+
+        <div class="timeline" id="timeline"></div>
+      </div>
+
+      <div class="card">
+        <h2>STATUS</h2>
+        <div class="pixel-line"></div>
+
+        <div class="barwrap">
+          <div class="barlabel"><span>TRAINING LOAD</span><span id="loadVal">70%</span></div>
+          <div class="bar"><span id="loadBar" style="width:70%"></span></div>
+        </div>
+
+        <div class="barwrap">
+          <div class="barlabel"><span>FUEL PLAN</span><span id="fuelVal">75%</span></div>
+          <div class="bar"><span id="fuelBar" style="width:75%"></span></div>
+        </div>
+
+        <div class="barwrap">
+          <div class="barlabel"><span>RECOVERY SPACE</span><span id="recoveryVal">55%</span></div>
+          <div class="bar"><span id="recoveryBar" style="width:55%"></span></div>
+        </div>
+
+        <div class="pixel-line"></div>
+        <h3>REGRAS DO DIA</h3>
+        <div id="dayRules" class="note"></div>
+      </div>
+    </div>
+  </section>
+
+  <section id="week" class="screen">
+    <div class="card">
+      <h2>WEEK MAP</h2>
+      <div class="pixel-line"></div>
+      <div class="weekgrid" id="weekGrid"></div>
+    </div>
+  </section>
+
+  <section id="workout" class="screen">
+    <div class="card">
+      <h2>WORKOUT PLAYER</h2>
+      <div class="pixel-line"></div>
+      <div class="row" style="margin-bottom:10px">
+        <select id="workoutSelect" class="btn"></select>
+        <button class="btn" id="resetSets">RESET SETS</button>
+      </div>
+      <div id="workoutList"></div>
+    </div>
+  </section>
+
+  <section id="edit" class="screen">
+    <div class="card">
+      <h2>EDIT SCHEDULE</h2>
+      <div class="pixel-line"></div>
+      <div class="editorgrid">
+        <div class="field">
+          <label>Dia</label>
+          <select id="editDay"></select>
+        </div>
+
+        <div class="field">
+          <label>Período</label>
+          <select id="editPeriod">
+            <option>bem cedo</option>
+            <option>de manhã</option>
+            <option>fim da manhã</option>
+            <option>depois do almoço</option>
+            <option>de tarde</option>
+            <option>fim da tarde</option>
+            <option>de noite</option>
+          </select>
+        </div>
+
+        <div class="field">
+          <label>Tipo</label>
+          <select id="editType">
+            <option>TRAIN</option>
+            <option>FUEL</option>
+            <option>WORK</option>
+            <option>RECOVERY</option>
+          </select>
+        </div>
+
+        <div class="field">
+          <label>Título</label>
+          <input id="editTitle" placeholder="Ex.: NATAÇÃO TÉCNICA">
+        </div>
+
+        <div class="field" style="grid-column:1/-1">
+          <label>Detalhes</label>
+          <textarea id="editDetails" placeholder="Ex.: 1.600m, foco em técnica e aeróbio"></textarea>
+        </div>
+      </div>
+
+      <div class="row" style="margin-top:12px">
+        <button id="addEvent" class="btn primary">+ ADD EVENT</button>
+        <button id="restoreDefaults" class="btn">RESTORE DEFAULTS</button>
+      </div>
+
+      <p class="note" style="margin-top:14px">
+        Nesta v0.2 os eventos usam períodos do dia em vez de horários rígidos.
+        As alterações ficam salvas neste navegador via localStorage.
+      </p>
+    </div>
+  </section>
+
+  <div class="footer">
+    © <a href="#" id="behanceLink" target="_blank" rel="noopener">Rafael Andrade</a>
+  </div>
+</div>
+
+<script>
+const DAYNAMES=["domingo","segunda","terça","quarta","quinta","sexta","sábado"];
+const PTDAY=["DOM","SEG","TER","QUA","QUI","SEX","SÁB"];
+const periodRank={
+  "bem cedo":1,
+  "de manhã":2,
+  "fim da manhã":3,
+  "depois do almoço":4,
+  "de tarde":5,
+  "fim da tarde":6,
+  "de noite":7
+};
+
+// Troque pelo seu URL real do Behance quando quiser.
+// Ex.: const BEHANCE_URL="https://www.behance.net/seuusuario";
+const BEHANCE_URL="#";
+document.getElementById("behanceLink").href=BEHANCE_URL;
+
+const defaultSchedule={
+  "segunda":[
+    {period:"de manhã",type:"TRAIN",title:"NATAÇÃO TÉCNICA/AERÓBIA",details:"Começar a semana sem declarar guerra aos ombros."},
+    {period:"de manhã",type:"FUEL",title:"CAFÉ / RECOVERY",details:"Crepioca 4 ovos + tapioca"},
+    {period:"fim da manhã",type:"WORK",title:"AULA",details:"09:40–12:40 · barrinha se necessário"},
+    {period:"depois do almoço",type:"FUEL",title:"ALMOÇO",details:"Salada grande + boa porção de carbo + bife"},
+    {period:"de tarde",type:"TRAIN",title:"PEITO + COSTAS",details:"Hipertrofia principal"},
+    {period:"fim da tarde",type:"FUEL",title:"REFEIÇÃO",details:"Crepioca ou omelete + torradas"},
+    {period:"de noite",type:"WORK",title:"AULA NOTURNA",details:"até 19:45 ou 21:30"},
+    {period:"de noite",type:"FUEL",title:"JANTAR",details:"Carbo + proteína + vegetais"}
+  ],
+  "terça":[
+    {period:"bem cedo",type:"FUEL",title:"PRÉ-PISTA",details:"Shot + 1 fatia pão + 20g malto + Insanity"},
+    {period:"bem cedo",type:"TRAIN",title:"PISTA · INTERVALADO",details:"8–10 km · HARD · antes do sol lembrar que existe"},
+    {period:"bem cedo",type:"FUEL",title:"INTRA",details:"Go! isotônico 20–25g de pó, aos poucos"},
+    {period:"de manhã",type:"FUEL",title:"PÓS",details:"Whey + 10g malto"},
+    {period:"de manhã",type:"FUEL",title:"CREPIOCA",details:"4 ovos + tapioca"},
+    {period:"fim da manhã",type:"WORK",title:"AULA",details:"09:40–12:40 · 20–30g malto durante a manhã"},
+    {period:"depois do almoço",type:"FUEL",title:"ALMOÇO",details:"Salada + carbo reforçado + bife"},
+    {period:"de tarde",type:"TRAIN",title:"PERNAS / FORTALECIMENTO",details:"Hard day hard · RPE 6–7 · sem falha"},
+    {period:"de tarde",type:"FUEL",title:"PÓS 2",details:"Whey + 10g malto"},
+    {period:"fim da tarde",type:"FUEL",title:"REFEIÇÃO",details:"Crepioca ou omelete + carbo"},
+    {period:"de noite",type:"FUEL",title:"JANTAR",details:"Carbo + proteína + vegetais"}
+  ],
+  "quarta":[
+    {period:"de manhã",type:"TRAIN",title:"NATAÇÃO PRINCIPAL",details:"Ritmo/eficiência · sessão-chave"},
+    {period:"de manhã",type:"FUEL",title:"CAFÉ / RECOVERY",details:"Crepioca ou equivalente"},
+    {period:"fim da manhã",type:"WORK",title:"AULA",details:"09:40–12:40 · barrinha"},
+    {period:"depois do almoço",type:"FUEL",title:"ALMOÇO",details:"Salada + carbo adequado + proteína"},
+    {period:"de tarde",type:"TRAIN",title:"BRAÇOS",details:"Bíceps + tríceps"},
+    {period:"fim da tarde",type:"FUEL",title:"REFEIÇÃO",details:"Crepioca ou omelete + torradas"}
+  ],
+  "quinta":[
+    {period:"bem cedo",type:"FUEL",title:"PRÉ-PISTA",details:"Shot + pão + 20g malto + Insanity"},
+    {period:"bem cedo",type:"TRAIN",title:"PISTA · INTERVALADO",details:"8–10 km · HARD · o despertador perdeu a discussão"},
+    {period:"bem cedo",type:"FUEL",title:"INTRA",details:"Go! isotônico aos poucos"},
+    {period:"de manhã",type:"FUEL",title:"PÓS",details:"Whey + 10g malto"},
+    {period:"de manhã",type:"FUEL",title:"CREPIOCA",details:"4 ovos + tapioca"},
+    {period:"fim da manhã",type:"WORK",title:"AULA",details:"Malto só se treino muito pesado/fome"},
+    {period:"depois do almoço",type:"FUEL",title:"ALMOÇO",details:"Salada + carbo + proteína"},
+    {period:"de tarde",type:"RECOVERY",title:"RECOVERY / PREHAB",details:"Opcional 20 min preventivo. Sem inventar leg day extra."}
+  ],
+  "sexta":[
+    {period:"de manhã",type:"TRAIN",title:"NATAÇÃO LEVE",details:"Técnica/aeróbio · deixar ombro vivo para a musculação"},
+    {period:"de manhã",type:"FUEL",title:"CAFÉ / RECOVERY",details:"Crepioca ou equivalente"},
+    {period:"fim da manhã",type:"WORK",title:"AULA",details:"09:40–12:40 · barrinha"},
+    {period:"depois do almoço",type:"FUEL",title:"ALMOÇO",details:"Salada + carbo adequado + proteína"},
+    {period:"de tarde",type:"TRAIN",title:"OMBROS",details:"Hipertrofia principal"},
+    {period:"fim da tarde",type:"FUEL",title:"REFEIÇÃO",details:"Crepioca ou omelete + carbo"}
+  ],
+  "sábado":[
+    {period:"de manhã",type:"TRAIN",title:"BRICK OU LONGÃO",details:"20–30 km bike + corrida T2 OU corrida longa"},
+    {period:"de manhã",type:"FUEL",title:"INTRA",details:"Go! isotônico durante bike; ajustar ao volume"},
+    {period:"depois do almoço",type:"FUEL",title:"RECOVERY",details:"Carbo + proteína + hidratação"}
+  ],
+  "domingo":[
+    {period:"de manhã",type:"TRAIN",title:"BIKE LONGA OU VELÓDROMO",details:"30–60 km estrada OU 20–30 km velódromo"},
+    {period:"de manhã",type:"FUEL",title:"INTRA",details:"Consumir a garrafa toda na bike"},
+    {period:"depois do almoço",type:"FUEL",title:"RECOVERY",details:"Repor carbo, proteína, líquido e sódio"}
+  ]
+};
+
+const workouts={
+  "PEITO + COSTAS":[
+    ["Supino inclinado halteres","4x8","30kg"],
+    ["Supino reto halteres","3x10","30kg"],
+    ["Crossover alto → baixo","3x12","RIR 2"],
+    ["Crossover baixo → alto","2x12","RIR 2"],
+    ["Puxada superior","3x10","RIR 2"],
+    ["Remada sentada fechada","3x10","RIR 2"],
+    ["Pulldown braços estendidos","2x12","RIR 2"],
+    ["Face pull","2x15","leve/mod."]
+  ],
+  "PERNAS / FORTALECIMENTO":[
+    ["Hip Thrust","3x8","RPE 6–7"],
+    ["Mesa flexora","3x10","RPE 6–7"],
+    ["Stiff","3x8","RPE 6–7"],
+    ["Step-up","3x10","RPE 6–7"],
+    ["Abdução de quadril","3x15","RPE 6–7"],
+    ["Cadeira extensora isométrica","3x30s","controle total"],
+    ["Panturrilha","4x15","RPE 6–7"]
+  ],
+  "BRAÇOS":[
+    ["Rosca direta apoiada","3x10","RIR 2"],
+    ["Rosca martelo","3x10","RIR 2"],
+    ["Rosca inclinada/sentada","2x12","RIR 2"],
+    ["Tríceps corda","3x12","RIR 2"],
+    ["Tríceps francês no cabo","3x12","RIR 2"],
+    ["Tríceps testa com corda","2x10","RIR 1–2"]
+  ],
+  "OMBROS":[
+    ["Desenvolvimento halteres","4x8","28kg"],
+    ["Elevação lateral","4x12","12kg"],
+    ["Crucifixo inverso","3x15","RIR 2"],
+    ["Face pull","3x15","RIR 2"],
+    ["Encolhimento halteres","3x12","36kg"]
+  ]
+};
+
+let schedule=JSON.parse(localStorage.getItem("trainFuelScheduleV02")||"null")||structuredClone(defaultSchedule);
+
+function save(){localStorage.setItem("trainFuelScheduleV02",JSON.stringify(schedule))}
+function switchTab(id){
+  document.querySelectorAll(".tab").forEach(b=>b.classList.toggle("active",b.dataset.tab===id));
+  document.querySelectorAll(".screen").forEach(s=>s.classList.toggle("active",s.id===id));
+}
+document.querySelectorAll(".tab").forEach(b=>b.onclick=()=>switchTab(b.dataset.tab));
+
+function fmtDate(d){
+  return d.toLocaleDateString("pt-BR",{weekday:"short",day:"2-digit",month:"short"}).toUpperCase();
+}
+function currentDayKey(){return DAYNAMES[new Date().getDay()]}
+function currentPeriod(){
+  const h=new Date().getHours();
+  if(h<8) return "bem cedo";
+  if(h<10) return "de manhã";
+  if(h<13) return "fim da manhã";
+  if(h<15) return "depois do almoço";
+  if(h<17) return "de tarde";
+  if(h<19) return "fim da tarde";
+  return "de noite";
+}
+function renderClock(){
+  const d=new Date();
+  todayDate.textContent=fmtDate(d);
+  liveClock.textContent=d.toLocaleTimeString("pt-BR",{hour:"2-digit",minute:"2-digit"});
+}
+function renderToday(){
+  const now=new Date(), key=currentDayKey();
+  const items=[...(schedule[key]||[])].sort((a,b)=>periodRank[a.period]-periodRank[b.period]);
+  const p=currentPeriod(), pr=periodRank[p];
+  dayTitle.textContent=PTDAY[now.getDay()]+" "+String(now.getDate()).padStart(2,"0");
+
+  const next=items.find(x=>periodRank[x.period]>=pr);
+  nextMission.textContent=next?`${next.period.toUpperCase()} · ${next.title}`:"DAY COMPLETE";
+
+  timeline.innerHTML="";
+  items.forEach((e,i)=>{
+    const el=document.createElement("div");
+    const isNow=e.period===p;
+    el.className="event"+(isNow?" now":"");
+    el.innerHTML=`<div class="time">${e.period.toUpperCase()}</div><div><div class="title">${e.title}</div><small>${e.details}</small></div><div class="kind">${e.type}</div>`;
+    timeline.appendChild(el);
+  });
+
+  const hard = key==="terça"||key==="quinta"||key==="sábado";
+  loadBadge.textContent=hard?"HARD":"MOD";
+  const vals=hard?[88,90,42]:[64,72,66];
+  loadVal.textContent=vals[0]+"%"; fuelVal.textContent=vals[1]+"%"; recoveryVal.textContent=vals[2]+"%";
+  loadBar.style.width=vals[0]+"%"; fuelBar.style.width=vals[1]+"%"; recoveryBar.style.width=vals[2]+"%";
+  dayRules.innerHTML=hard
+    ?"• Não treinar em jejum.<br>• Priorizar carbo em torno do treino.<br>• Cafeína não ressuscita recuperação ruim.<br>• Sinais de resfriado/fadiga = reduzir carga."
+    :"• Alimentação normal.<br>• Sem malto por esporte.<br>• Guardar munição para os hard days.";
+}
+function renderWeek(){
+  weekGrid.innerHTML="";
+  ["segunda","terça","quarta","quinta","sexta","sábado","domingo"].forEach(k=>{
+    const c=document.createElement("div"); c.className="daycol";
+    c.innerHTML=`<h3>${k.toUpperCase()}</h3>`;
+    (schedule[k]||[]).filter(e=>e.type==="TRAIN").forEach(e=>{
+      c.innerHTML+=`<div class="mini"><b>${e.period.toUpperCase()}</b><br>${e.title}<br><span class="note">${e.details}</span></div>`;
+    });
+    weekGrid.appendChild(c);
+  })
+}
+function renderWorkoutOptions(){
+  workoutSelect.innerHTML=Object.keys(workouts).map(k=>`<option>${k}</option>`).join("");
+  renderWorkout();
+}
+function setCount(txt){
+  const m=txt.match(/^(\d+)x/); return m?Number(m[1]):0;
+}
+function renderWorkout(){
+  const k=workoutSelect.value, arr=workouts[k]||[];
+  workoutList.innerHTML=`<h3>${k}</h3>`;
+  arr.forEach((x,idx)=>{
+    const n=setCount(x[1]);
+    const done=JSON.parse(localStorage.getItem(`setsV02:${k}:${idx}`)||"[]");
+    const e=document.createElement("div");e.className="exercise";
+    e.innerHTML=`<div class="exercise-head"><b>${x[0]}</b><span>${x[1]} · ${x[2]}</span></div>
+      <div class="sets">${Array.from({length:n},(_,i)=>`<button class="set ${done[i]?"done":""}" data-i="${i}" data-ex="${idx}">${i+1}</button>`).join("")}</div>`;
+    workoutList.appendChild(e);
+  });
+  workoutList.querySelectorAll(".set").forEach(b=>b.onclick=()=>{
+    const ex=Number(b.dataset.ex), i=Number(b.dataset.i);
+    const key=`setsV02:${k}:${ex}`, done=JSON.parse(localStorage.getItem(key)||"[]");
+    done[i]=!done[i]; localStorage.setItem(key,JSON.stringify(done)); renderWorkout();
+  });
+}
+workoutSelect.onchange=renderWorkout;
+resetSets.onclick=()=>{
+  const k=workoutSelect.value;
+  workouts[k].forEach((_,i)=>localStorage.removeItem(`setsV02:${k}:${i}`));
+  renderWorkout();
+};
+
+function setupEditor(){
+  const days=["segunda","terça","quarta","quinta","sexta","sábado","domingo"];
+  editDay.innerHTML=days.map(d=>`<option value="${d}">${d.toUpperCase()}</option>`).join("");
+  addEvent.onclick=()=>{
+    const d=editDay.value;
+    schedule[d]=schedule[d]||[];
+    schedule[d].push({
+      period:editPeriod.value,
+      type:editType.value,
+      title:editTitle.value||"NOVO EVENTO",
+      details:editDetails.value||""
+    });
+    save(); renderToday(); renderWeek();
+    editTitle.value=""; editDetails.value="";
+    alert("EVENT ADDED");
+  };
+  restoreDefaults.onclick=()=>{
+    if(confirm("Restaurar cronograma padrão?")){
+      schedule=structuredClone(defaultSchedule);save();renderToday();renderWeek();alert("DEFAULTS RESTORED");
+    }
+  };
+}
+function setCycle(){
+  const start=new Date(2026,7,10);
+  const now=new Date();
+  const diff=Math.floor((now-start)/86400000);
+  const wk=Math.max(1,Math.floor(diff/7)+1);
+  cycleBadge.textContent="WEEK "+String(((wk-1)%4)+1).padStart(2,"0");
+}
+
+renderClock();
+setInterval(()=>{renderClock();renderToday()},30000);
+setCycle();
+renderToday();
+renderWeek();
+renderWorkoutOptions();
+setupEditor();
+</script>
+</body>
+</html>
