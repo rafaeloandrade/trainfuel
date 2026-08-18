@@ -1,0 +1,1462 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>TRAIN//FUEL 8BIT v0.2</title>
+<link rel="icon" type="image/png" href="favicon.png">
+<style>
+:root{
+  --bg:#d9e7a6;
+  --panel:#c5d98d;
+  --ink:#1d2a16;
+  --mid:#556b2f;
+  --light:#eef5cf;
+  --shadow:#8ea05a;
+}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--bg);color:var(--ink);font-family:"Courier New",monospace}
+body{
+  min-height:100vh;
+  background:
+    linear-gradient(90deg,rgba(29,42,22,.04) 1px,transparent 1px) 0 0/8px 8px,
+    linear-gradient(rgba(29,42,22,.04) 1px,transparent 1px) 0 0/8px 8px,
+    var(--bg);
+}
+button,input,select,textarea{font:inherit}
+button{cursor:pointer}
+a{color:inherit}
+.app{max-width:1180px;margin:0 auto;padding:14px}
+
+.topbar{
+  display:flex;justify-content:space-between;gap:14px;align-items:center;
+  border:4px solid var(--ink);background:var(--panel);padding:12px 14px;
+  box-shadow:6px 6px 0 var(--ink);margin-bottom:16px
+}
+.brandwrap{display:flex;gap:12px;align-items:center;min-width:0}
+.logo-skull{
+  width:58px;height:58px;flex:0 0 58px;
+  image-rendering:pixelated;
+}
+.brand{font-weight:900;font-size:clamp(22px,4vw,38px);letter-spacing:-2px;white-space:nowrap}
+.subtitle{font-size:12px}
+.clock{text-align:right;font-weight:700;white-space:nowrap}
+
+.tabs{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px}
+.tab{
+  border:3px solid var(--ink);background:var(--light);padding:9px 12px;
+  box-shadow:3px 3px 0 var(--ink);font-weight:900
+}
+.tab.active{background:var(--ink);color:var(--light);box-shadow:none;transform:translate(3px,3px)}
+.screen{display:none}.screen.active{display:block}
+.grid{display:grid;grid-template-columns:1.2fr .8fr;gap:16px}
+.card{
+  border:4px solid var(--ink);background:var(--panel);padding:14px;
+  box-shadow:5px 5px 0 var(--ink)
+}
+.card h2,.card h3{margin:0 0 10px}
+.pixel-line{height:4px;background:var(--ink);margin:8px 0 12px}
+.hero{display:flex;justify-content:space-between;gap:12px;align-items:flex-end;margin-bottom:12px}
+.daytitle{font-size:clamp(25px,5vw,44px);font-weight:900}
+.badge{display:inline-block;border:3px solid var(--ink);padding:5px 8px;background:var(--light);font-weight:900}
+
+.timeline{display:grid;gap:10px}
+.event{
+  border:3px solid var(--ink);background:var(--light);
+  display:grid;grid-template-columns:112px 1fr auto;gap:10px;align-items:center;padding:10px
+}
+.event.now{outline:none;background:var(--ink);color:var(--light);box-shadow:4px 4px 0 var(--mid)}
+.event.now .kind{border-color:var(--light);color:var(--light)}
+.event .time{font-weight:900}
+.event .title{font-weight:900}
+.event small{display:block;margin-top:3px;line-height:1.35}
+.kind{border:2px solid var(--ink);padding:4px 6px;font-size:12px;font-weight:900}
+.nextbox{border:4px solid var(--ink);background:var(--ink);color:var(--light);padding:14px;margin-bottom:14px}
+.barwrap{margin-top:8px}
+.barlabel{display:flex;justify-content:space-between;gap:8px}
+.bar{border:3px solid var(--ink);height:18px;background:var(--light);padding:2px}
+.bar>span{display:block;height:100%;background:var(--ink)}
+
+.weekgrid{display:grid;grid-template-columns:repeat(7,1fr);gap:9px}
+.daycol{border:3px solid var(--ink);background:var(--light);padding:8px;min-height:220px}
+.daycol h3{font-size:14px;margin-bottom:8px}
+.mini{border-top:2px solid var(--ink);padding:7px 0;font-size:12px}
+.mini:first-of-type{border-top:0}
+
+.editorgrid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.field{display:grid;gap:5px}
+.field input,.field select,.field textarea{
+  width:100%;border:3px solid var(--ink);background:var(--light);padding:9px;color:var(--ink)
+}
+.field textarea{min-height:90px;resize:vertical}
+.btn{
+  border:3px solid var(--ink);background:var(--light);padding:9px 12px;
+  box-shadow:3px 3px 0 var(--ink);font-weight:900
+}
+.btn.primary{background:var(--ink);color:var(--light)}
+.row{display:flex;gap:8px;flex-wrap:wrap}
+.exercise{border:3px solid var(--ink);background:var(--light);padding:10px;margin:8px 0}
+.exercise-head{display:flex;justify-content:space-between;gap:8px;align-items:center}
+.sets{display:flex;gap:7px;flex-wrap:wrap;margin-top:8px}
+.set{
+  width:34px;height:34px;border:3px solid var(--ink);background:var(--panel);
+  display:grid;place-items:center;font-weight:900
+}
+.set.done{background:var(--ink);color:var(--light)}
+.note{font-size:12px;opacity:.85;line-height:1.4}
+.footer{
+  margin:20px 0 8px;text-align:center;font-size:12px;
+  border-top:3px solid var(--ink);padding-top:12px
+}
+.footer a{font-weight:900;text-decoration:none;border-bottom:2px solid var(--ink)}
+
+@media(max-width:860px){
+  .grid{grid-template-columns:1fr}
+  .weekgrid{grid-template-columns:1fr 1fr}
+  .editorgrid{grid-template-columns:1fr}
+}
+@media(max-width:560px){
+  .app{padding:9px}
+  .topbar{padding:9px 10px;box-shadow:4px 4px 0 var(--ink);align-items:flex-start}
+  .logo-skull{width:46px;height:46px;flex-basis:46px}
+  .brand{font-size:24px}
+  .subtitle{font-size:10px}
+  .clock{font-size:12px}
+  .tabs{display:grid;grid-template-columns:1fr 1fr}
+  .tab{width:100%;padding:10px 6px}
+  .event{grid-template-columns:1fr auto;gap:6px}
+  .event .time{grid-column:1/-1;font-size:12px;opacity:.8}
+  .kind{grid-column:2;grid-row:2;align-self:start}
+  .weekgrid{grid-template-columns:1fr}
+  .card{box-shadow:4px 4px 0 var(--ink);padding:11px}
+  .hero{align-items:flex-start}
+  .daytitle{font-size:30px}
+  .exercise-head{align-items:flex-start;flex-direction:column}
+}
+
+.skull-button{
+  border:0;background:transparent;padding:0;margin:0;color:var(--ink);
+  cursor:pointer;display:grid;place-items:center;
+}
+.skull-button:active{transform:translate(2px,2px)}
+.game-modal{
+  position:fixed;inset:0;background:rgba(29,42,22,.78);
+  display:none;align-items:center;justify-content:center;
+  padding:16px;z-index:9999
+}
+.game-modal.open{display:flex}
+.game-shell{
+  width:min(760px,100%);border:4px solid var(--ink);background:var(--panel);
+  box-shadow:8px 8px 0 var(--ink);padding:12px
+}
+.game-top{
+  display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:10px
+}
+.game-title{font-weight:900;font-size:22px}
+.game-close{
+  border:3px solid var(--ink);background:var(--light);font-weight:900;padding:7px 10px;
+  box-shadow:3px 3px 0 var(--ink)
+}
+.game-wrap{
+  border:4px solid var(--ink);background:var(--light);position:relative;
+  aspect-ratio:16/7;overflow:hidden;touch-action:manipulation
+}
+#skullGame{
+  width:100%;height:100%;display:block;image-rendering:pixelated
+}
+.game-help{
+  display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;
+  font-size:12px;margin-top:8px
+}
+.game-overlay{
+  position:absolute;inset:0;display:flex;align-items:center;justify-content:center;
+  text-align:center;pointer-events:none
+}
+.game-message{
+  background:var(--panel);border:3px solid var(--ink);padding:10px 14px;font-weight:900;
+  box-shadow:4px 4px 0 var(--ink)
+}
+@media(max-width:560px){
+  .game-shell{padding:8px;box-shadow:5px 5px 0 var(--ink)}
+  .game-title{font-size:18px}
+  .game-wrap{aspect-ratio:4/3}
+}
+
+
+.smart-banner{
+  border:4px solid var(--ink);background:var(--light);padding:10px;margin:12px 0;font-weight:900
+}
+.smart-banner.caution{background:var(--panel)}
+.smart-banner.recovery{background:var(--ink);color:var(--light)}
+.check-grid{display:grid;grid-template-columns:1fr;gap:9px}
+.check-row{border:2px solid var(--ink);background:var(--light);padding:8px}
+.check-row label{display:flex;justify-content:space-between;gap:8px;font-weight:900}
+.check-row input[type=range]{width:100%;accent-color:var(--ink)}
+.perception{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-top:8px}
+.perception button,.choice-btn{
+  border:3px solid var(--ink);background:var(--light);padding:8px 6px;font-weight:900
+}
+.perception button.active,.choice-btn.active{background:var(--ink);color:var(--light)}
+.weekend-choices{display:flex;gap:8px;flex-wrap:wrap;margin:10px 0}
+.mini-calendar{margin-top:12px;border-top:4px solid var(--ink);padding-top:10px}
+.cal-head{display:flex;justify-content:space-between;align-items:center;font-weight:900;margin-bottom:7px}
+.cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:3px}
+.cal-cell{min-height:32px;border:2px solid transparent;padding:3px;font-size:11px;text-align:center}
+.cal-cell.cycle{border-color:var(--ink);background:var(--light)}
+.cal-cell.today{background:var(--ink);color:var(--light)}
+.cal-cell.deload{box-shadow:inset 0 -5px 0 var(--mid)}
+.cal-weekday{font-size:9px;font-weight:900;text-align:center}
+.data-box{border:3px solid var(--ink);background:var(--light);padding:10px;margin-top:12px}
+.data-status{font-size:12px;margin-top:8px}
+@media(max-width:560px){
+  .perception{grid-template-columns:1fr 1fr}
+  .cal-cell{min-height:29px;font-size:10px}
+}
+
+
+.race-control{border:4px solid var(--ink);background:var(--light);padding:10px;margin:10px 0 14px}
+.race-head{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap}
+.race-danger{width:54px;height:54px;border:4px solid var(--ink);background:var(--panel);display:grid;place-items:center;cursor:pointer;box-shadow:4px 4px 0 var(--ink);padding:5px}
+.race-danger.active{background:var(--ink);color:var(--light);box-shadow:none;transform:translate(4px,4px)}
+.race-danger svg{width:100%;height:100%;image-rendering:pixelated}
+.race-options{display:none;gap:7px;flex-wrap:wrap;margin-top:10px}
+.race-options.open{display:flex}
+.race-option{border:3px solid var(--ink);background:var(--light);padding:8px 10px;font-weight:900}
+.race-option.active{background:var(--ink);color:var(--light)}
+.race-status{margin-top:9px;border-top:3px solid var(--ink);padding-top:8px;font-size:12px;line-height:1.45}
+.race-tag{display:inline-block;border:3px solid var(--ink);background:var(--ink);color:var(--light);padding:5px 7px;font-weight:900;margin-bottom:6px}
+
+</style>
+<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+</head>
+<body>
+<div class="app">
+  <header class="topbar">
+    <div class="brandwrap">
+      <!-- Caveira pixel em SVG inline para manter o HTML autocontido -->
+      <button id="skullButton" class="skull-button" aria-label="Abrir Skull Run">
+      <svg class="logo-skull" viewBox="0 0 16 16" aria-label="Caveira pixel" role="img">
+        <rect width="16" height="16" fill="none"/>
+        <g fill="currentColor">
+          <rect x="5" y="1" width="6" height="1"/>
+          <rect x="3" y="2" width="10" height="1"/>
+          <rect x="2" y="3" width="12" height="6"/>
+          <rect x="3" y="9" width="10" height="2"/>
+          <rect x="4" y="11" width="8" height="2"/>
+          <rect x="5" y="13" width="2" height="2"/>
+          <rect x="9" y="13" width="2" height="2"/>
+        </g>
+        <g fill="var(--panel)">
+          <rect x="4" y="5" width="3" height="2"/>
+          <rect x="9" y="5" width="3" height="2"/>
+          <rect x="7" y="8" width="2" height="2"/>
+          <rect x="6" y="11" width="1" height="1"/>
+          <rect x="8" y="11" width="1" height="1"/>
+          <rect x="10" y="11" width="1" height="1"/>
+        </g>
+      </svg>
+      </button>
+      <div>
+        <div class="brand">TRAIN//FUEL</div>
+        <div class="subtitle">8BIT TRAINING OS · v0.2</div>
+      </div>
+    </div>
+    <div class="clock">
+      <div id="todayDate">--</div>
+      <div id="liveClock">--:--</div>
+    </div>
+  </header>
+
+  <nav class="tabs">
+    <button class="tab active" data-tab="today">TODAY</button>
+    <button class="tab" data-tab="week">WEEK</button>
+    <button class="tab" data-tab="workout">WORKOUT</button>
+    <button class="tab" data-tab="edit">EDIT</button>
+  </nav>
+
+  <section id="today" class="screen active">
+    <div class="grid">
+      <div class="card">
+        <div class="hero">
+          <div>
+            <div class="badge" id="cycleBadge">WEEK 01</div>
+            <div class="daytitle" id="dayTitle">HOJE</div>
+          </div>
+          <div class="badge" id="loadBadge">MOD</div>
+        </div>
+        <div id="weekendChoice" class="weekend-choices" style="display:none"></div>
+
+        <div class="nextbox">
+          <div class="note">NEXT MISSION</div>
+          <div id="nextMission" style="font-size:22px;font-weight:900;margin-top:5px">--</div>
+        </div>
+
+        <div class="timeline" id="timeline"></div>
+      </div>
+
+      <div class="card">
+        <h2>STATUS</h2>
+        <div class="pixel-line"></div>
+
+        <div class="barwrap">
+          <div class="barlabel"><span>TRAINING LOAD</span><span id="loadVal">70%</span></div>
+          <div class="bar"><span id="loadBar" style="width:70%"></span></div>
+        </div>
+
+        <div class="barwrap">
+          <div class="barlabel"><span>FUEL PLAN</span><span id="fuelVal">75%</span></div>
+          <div class="bar"><span id="fuelBar" style="width:75%"></span></div>
+        </div>
+
+        <div class="barwrap">
+          <div class="barlabel"><span>RECOVERY SPACE</span><span id="recoveryVal">55%</span></div>
+          <div class="bar"><span id="recoveryBar" style="width:55%"></span></div>
+        </div>
+
+        <div id="smartBanner" class="smart-banner">TODAY: NORMAL</div>
+
+        <h3>RECOVERY CHECK</h3>
+        <div class="check-grid">
+          <div class="check-row">
+            <label><span>SONO</span><span id="sleepVal">3/5</span></label>
+            <input id="sleepRange" type="range" min="1" max="5" value="3">
+          </div>
+          <div class="check-row">
+            <label><span>FADIGA MUSCULAR</span><span id="fatigueVal">3/5</span></label>
+            <input id="fatigueRange" type="range" min="1" max="5" value="3">
+          </div>
+          <div class="check-row">
+            <label><span>DISPOSIÇÃO</span><span id="energyVal">3/5</span></label>
+            <input id="energyRange" type="range" min="1" max="5" value="3">
+          </div>
+          <button id="saveRecovery" class="btn">SAVE CHECK</button>
+        </div>
+
+        <div class="pixel-line"></div>
+        <h3>PÓS-TREINO</h3>
+        <select id="sessionSelect" class="btn" style="width:100%"></select>
+        <div class="perception" id="perceptionButtons">
+          <button data-feel="FÁCIL">FÁCIL</button>
+          <button data-feel="BOM">BOM</button>
+          <button data-feel="PESADO">PESADO</button>
+          <button data-feel="MORRI">MORRI</button>
+        </div>
+
+        <div class="mini-calendar">
+          <div class="cal-head"><span>CYCLE MAP</span><span id="cycleDates">--</span></div>
+          <div id="miniCalendar"></div>
+        </div>
+
+        <div class="pixel-line"></div>
+        <h3>REGRAS DO DIA</h3>
+        <div id="dayRules" class="note"></div>
+      </div>
+    </div>
+  </section>
+
+  <section id="week" class="screen">
+    <div class="card">
+      <h2>WEEK MAP</h2>
+      <div class="pixel-line"></div>
+
+      <div class="race-control">
+        <div class="race-head">
+          <div>
+            <div class="badge">RACE MODE</div>
+            <div class="note" style="margin-top:5px">Marque quando a prova for no domingo desta semana.</div>
+          </div>
+          <button id="raceDangerButton" class="race-danger" aria-label="Ativar semana de prova">
+            <svg viewBox="0 0 20 20" role="img" aria-label="Caveira com ossos cruzados">
+              <g fill="currentColor">
+                <rect x="6" y="2" width="8" height="1"/><rect x="4" y="3" width="12" height="6"/>
+                <rect x="5" y="9" width="10" height="3"/><rect x="7" y="12" width="2" height="2"/>
+                <rect x="11" y="12" width="2" height="2"/>
+                <rect x="6" y="5" width="2" height="2" fill="var(--light)"/>
+                <rect x="12" y="5" width="2" height="2" fill="var(--light)"/>
+                <rect x="9" y="8" width="2" height="2" fill="var(--light)"/>
+                <rect x="2" y="14" width="2" height="2"/><rect x="4" y="16" width="2" height="2"/>
+                <rect x="14" y="16" width="2" height="2"/><rect x="16" y="14" width="2" height="2"/>
+                <rect x="4" y="14" width="12" height="2" transform="rotate(25 10 15)"/>
+                <rect x="4" y="14" width="12" height="2" transform="rotate(-25 10 15)"/>
+              </g>
+            </svg>
+          </button>
+        </div>
+        <div id="raceOptions" class="race-options">
+          <button class="race-option" data-race="RUN">RUN</button>
+          <button class="race-option" data-race="DUATHLON">DUATHLON</button>
+          <button class="race-option" data-race="TRIATHLON">TRIATHLON</button>
+          <button class="race-option" data-race="OFF">OFF</button>
+        </div>
+        <div id="raceStatus" class="race-status">RACE MODE: OFF</div>
+      </div>
+
+      <div class="weekend-choices">
+        <span class="badge">SAT</span>
+        <button class="choice-btn" data-choice-day="sábado" data-choice="BRICK">BRICK</button>
+        <button class="choice-btn" data-choice-day="sábado" data-choice="LONG RUN">LONG RUN</button>
+        <span class="badge">SUN</span>
+        <button class="choice-btn" data-choice-day="domingo" data-choice="ROAD">ROAD</button>
+        <button class="choice-btn" data-choice-day="domingo" data-choice="VELODROME">VELODROME</button>
+      </div>
+      <div class="weekgrid" id="weekGrid"></div>
+    </div>
+  </section>
+
+  <section id="workout" class="screen">
+    <div class="card">
+      <h2>WORKOUT PLAYER</h2>
+      <div class="pixel-line"></div>
+      <div class="row" style="margin-bottom:10px">
+        <select id="workoutSelect" class="btn"></select>
+        <button class="btn" id="resetSets">RESET SETS</button>
+      </div>
+      <div id="workoutList"></div>
+    </div>
+  </section>
+
+  <section id="edit" class="screen">
+    <div class="card">
+      <h2>EDIT SCHEDULE</h2>
+      <div class="pixel-line"></div>
+      <div class="editorgrid">
+        <div class="field">
+          <label>Dia</label>
+          <select id="editDay"></select>
+        </div>
+
+        <div class="field">
+          <label>Período</label>
+          <select id="editPeriod">
+            <option>bem cedo</option>
+            <option>de manhã</option>
+            <option>fim da manhã</option>
+            <option>depois do almoço</option>
+            <option>de tarde</option>
+            <option>fim da tarde</option>
+            <option>de noite</option>
+          </select>
+        </div>
+
+        <div class="field">
+          <label>Tipo</label>
+          <select id="editType">
+            <option>TRAIN</option>
+            <option>FUEL</option>
+            <option>WORK</option>
+            <option>RECOVERY</option>
+          </select>
+        </div>
+
+        <div class="field">
+          <label>Título</label>
+          <input id="editTitle" placeholder="Ex.: NATAÇÃO TÉCNICA">
+        </div>
+
+        <div class="field" style="grid-column:1/-1">
+          <label>Detalhes</label>
+          <textarea id="editDetails" placeholder="Ex.: 1.600m, foco em técnica e aeróbio"></textarea>
+        </div>
+      </div>
+
+      <div class="row" style="margin-top:12px">
+        <button id="addEvent" class="btn primary">+ ADD EVENT</button>
+        <button id="restoreDefaults" class="btn">RESTORE DEFAULTS</button>
+      </div>
+
+      <div class="data-box">
+        <h3>DATA EDITOR · XLSX / GOOGLE SHEETS</h3>
+        <p class="note">Edite o arquivo TRAIN//FUEL no Excel ou Google Sheets. No Sheets, baixe como Microsoft Excel (.xlsx) e importe aqui.</p>
+        <input id="xlsxInput" type="file" accept=".xlsx,.xls" class="btn" style="width:100%">
+        <div class="row" style="margin-top:8px">
+          <button id="clearImportedData" class="btn">USE EMBEDDED DATA</button>
+        </div>
+        <div id="dataStatus" class="data-status">SOURCE: EMBEDDED DATA</div>
+      </div>
+      <p class="note" style="margin-top:14px">
+        Agenda, ciclos, treinos, nutrição e alternativas podem ser substituídos pela planilha sem reescrever o app.
+        Os check-ins e marcações continuam salvos neste navegador.
+      </p>
+    </div>
+  </section>
+
+
+  <div id="gameModal" class="game-modal" aria-hidden="true">
+    <div class="game-shell">
+      <div class="game-top">
+        <div class="game-title">SKULL RUN</div>
+        <button id="gameClose" class="game-close">X CLOSE</button>
+      </div>
+      <div id="gameWrap" class="game-wrap">
+        <canvas id="skullGame" width="720" height="315"></canvas>
+        <div class="game-overlay" id="gameOverlay">
+          <div class="game-message" id="gameMessage">
+            TAP / CLICK / SPACE<br>TO START
+          </div>
+        </div>
+      </div>
+      <div class="game-help">
+        <span>1 TAP = JUMP</span>
+        <span id="gameScoreText">SCORE 0000 · HI 0000</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="footer">
+    © <a href="#" id="behanceLink" target="_blank" rel="noopener">Rafael Andrade</a>
+  </div>
+</div>
+
+<script>
+const DAYNAMES=["domingo","segunda","terça","quarta","quinta","sexta","sábado"];
+const PTDAY=["DOM","SEG","TER","QUA","QUI","SEX","SÁB"];
+const periodRank={
+  "bem cedo":1,
+  "de manhã":2,
+  "fim da manhã":3,
+  "depois do almoço":4,
+  "de tarde":5,
+  "fim da tarde":6,
+  "de noite":7
+};
+
+let appConfig={
+  cycle_id:1,
+  cycle_start:"2026-08-10",
+  cycle_weeks:4,
+  weight_kg:73
+};
+let importedWorkoutRows=[];
+let nutritionRows=[
+  ["HARD DAY","bem cedo","PRÉ","Pão + 20g malto + rotina pré-treino",1],
+  ["HARD DAY","bem cedo","INTRA","Go! isotônico durante o treino",1],
+  ["HARD DAY","de manhã","PÓS","Whey + 20g malto",1],
+  ["HARD DAY","de manhã","CAFÉ","Crepioca 4 ovos + tapioca",1],
+  ["HARD DAY","fim da manhã","AULA","20g malto se necessário / conforme carga",1],
+  ["HARD DAY","depois do almoço","ALMOÇO","Salada + carbo reforçado + proteína",1],
+  ["HARD DAY","fim da tarde","REFEIÇÃO","Crepioca ou omelete + carbo",1],
+  ["HARD DAY","de noite","JANTAR","Carbo + proteína + vegetais",1],
+  ["DOUBLE DAY","de manhã","CAFÉ / RECOVERY","Crepioca ou equivalente",1],
+  ["DOUBLE DAY","fim da manhã","AULA","Barrinha / lanche prático",1],
+  ["DOUBLE DAY","depois do almoço","ALMOÇO","Salada + boa porção de carbo + proteína",1],
+  ["DOUBLE DAY","de tarde","INTRA","Isotônico se a sessão justificar",0],
+  ["DOUBLE DAY","de tarde","PÓS 2","Whey + 10g malto",1],
+  ["DOUBLE DAY","fim da tarde","REFEIÇÃO","Crepioca ou omelete + torradas",1],
+  ["DOUBLE DAY","de noite","JANTAR","Refeição completa",1],
+  ["MODERATE","de manhã","CAFÉ","Refeição normal",1],
+  ["MODERATE","fim da manhã","LANCHE","Barrinha se houver fome",0],
+  ["MODERATE","depois do almoço","ALMOÇO","Salada + carbo + proteína",1],
+  ["MODERATE","fim da tarde","REFEIÇÃO","Crepioca ou omelete + torradas",1],
+  ["LONG/BRICK","de manhã","PRÉ","Carboidrato fácil + hidratação",1],
+  ["LONG/BRICK","de manhã","INTRA","Isotônico; ajustar carbo ao volume/duração",1],
+  ["LONG/BRICK","depois do almoço","RECOVERY","Carbo + proteína + líquido + sódio",1],
+  ["LONG/BRICK","fim da tarde","REFEIÇÃO","Refeição completa",1]
+];
+let alternativesRows=[
+  ["sábado","BRICK","BRICK","20–30 km bike + corrida T2","LONG/BRICK",88],
+  ["sábado","LONG RUN","LONG RUN","Corrida longa controlada","LONG/BRICK",80],
+  ["domingo","ROAD","ROAD","Bike estrada 30–60 km","LONG/BRICK",68],
+  ["domingo","VELODROME","VELODROME","20–30 km · intensidade/neuromuscular","LONG/BRICK",84]
+];
+let weekendSelections={
+  "sábado":localStorage.getItem("tfWeekendSat")||"BRICK",
+  "domingo":localStorage.getItem("tfWeekendSun")||"ROAD"
+};
+
+let raceMode=JSON.parse(localStorage.getItem("tfRaceMode")||"null")||{
+  enabled:false,type:null,raceSunday:null
+};
+function upcomingSunday(base=new Date()){
+  const d=new Date(base.getFullYear(),base.getMonth(),base.getDate());
+  d.setDate(d.getDate()+((7-d.getDay())%7)); return d;
+}
+function isoDateLocal(d){return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`;}
+function racePhaseForDate(date=new Date()){
+  if(!raceMode.enabled||!raceMode.raceSunday) return "NORMAL";
+  const race=new Date(raceMode.raceSunday+"T00:00:00");
+  const d=new Date(date.getFullYear(),date.getMonth(),date.getDate());
+  const start=new Date(race); start.setDate(race.getDate()-6);
+  const recoveryEnd=new Date(race); recoveryEnd.setDate(race.getDate()+7);
+  if(d>=start && d<=race) return "RACE";
+  if(d>race && d<=recoveryEnd) return "POST_RACE_RECOVERY";
+  return "NORMAL";
+}
+function raceType(){return raceMode.enabled?raceMode.type:null;}
+
+
+
+// Troque pelo seu URL real do Behance quando quiser.
+// Ex.: const BEHANCE_URL="https://www.behance.net/seuusuario";
+const BEHANCE_URL="#";
+document.getElementById("behanceLink").href=BEHANCE_URL;
+
+const defaultSchedule={
+  "segunda":[
+    {period:"de manhã",type:"TRAIN",title:"NATAÇÃO TÉCNICA/AERÓBIA",details:"Começar a semana sem declarar guerra aos ombros."},
+    {period:"de manhã",type:"FUEL",title:"CAFÉ / RECOVERY",details:"Crepioca 4 ovos + tapioca"},
+    {period:"fim da manhã",type:"WORK",title:"AULA",details:"09:40–12:40 · barrinha se necessário"},
+    {period:"depois do almoço",type:"FUEL",title:"ALMOÇO",details:"Salada grande + boa porção de carbo + bife"},
+    {period:"de tarde",type:"TRAIN",title:"PEITO + COSTAS",details:"Hipertrofia principal"},
+    {period:"fim da tarde",type:"FUEL",title:"REFEIÇÃO",details:"Crepioca ou omelete + torradas"},
+    {period:"de noite",type:"WORK",title:"AULA NOTURNA",details:"até 19:45 ou 21:30"},
+    {period:"de noite",type:"FUEL",title:"JANTAR",details:"Carbo + proteína + vegetais"}
+  ],
+  "terça":[
+    {period:"bem cedo",type:"FUEL",title:"PRÉ-PISTA",details:"Shot + 1 fatia pão + 20g malto + Insanity"},
+    {period:"bem cedo",type:"TRAIN",title:"PISTA · INTERVALADO",details:"8–10 km · HARD · antes do sol lembrar que existe"},
+    {period:"bem cedo",type:"FUEL",title:"INTRA",details:"Go! isotônico 20–25g de pó, aos poucos"},
+    {period:"de manhã",type:"FUEL",title:"PÓS",details:"Whey + 10g malto"},
+    {period:"de manhã",type:"FUEL",title:"CREPIOCA",details:"4 ovos + tapioca"},
+    {period:"fim da manhã",type:"WORK",title:"AULA",details:"09:40–12:40 · 20–30g malto durante a manhã"},
+    {period:"depois do almoço",type:"FUEL",title:"ALMOÇO",details:"Salada + carbo reforçado + bife"},
+    {period:"de tarde",type:"TRAIN",title:"PERNAS / FORTALECIMENTO",details:"Hard day hard · RPE 6–7 · sem falha"},
+    {period:"de tarde",type:"FUEL",title:"PÓS 2",details:"Whey + 10g malto"},
+    {period:"fim da tarde",type:"FUEL",title:"REFEIÇÃO",details:"Crepioca ou omelete + carbo"},
+    {period:"de noite",type:"FUEL",title:"JANTAR",details:"Carbo + proteína + vegetais"}
+  ],
+  "quarta":[
+    {period:"de manhã",type:"TRAIN",title:"NATAÇÃO PRINCIPAL",details:"Ritmo/eficiência · sessão-chave"},
+    {period:"de manhã",type:"FUEL",title:"CAFÉ / RECOVERY",details:"Crepioca ou equivalente"},
+    {period:"fim da manhã",type:"WORK",title:"AULA",details:"09:40–12:40 · barrinha"},
+    {period:"depois do almoço",type:"FUEL",title:"ALMOÇO",details:"Salada + carbo adequado + proteína"},
+    {period:"de tarde",type:"TRAIN",title:"BRAÇOS",details:"Bíceps + tríceps"},
+    {period:"fim da tarde",type:"FUEL",title:"REFEIÇÃO",details:"Crepioca ou omelete + torradas"}
+  ],
+  "quinta":[
+    {period:"bem cedo",type:"FUEL",title:"PRÉ-PISTA",details:"Shot + pão + 20g malto + Insanity"},
+    {period:"bem cedo",type:"TRAIN",title:"PISTA · INTERVALADO",details:"8–10 km · HARD · o despertador perdeu a discussão"},
+    {period:"bem cedo",type:"FUEL",title:"INTRA",details:"Go! isotônico aos poucos"},
+    {period:"de manhã",type:"FUEL",title:"PÓS",details:"Whey + 10g malto"},
+    {period:"de manhã",type:"FUEL",title:"CREPIOCA",details:"4 ovos + tapioca"},
+    {period:"fim da manhã",type:"WORK",title:"AULA",details:"Malto só se treino muito pesado/fome"},
+    {period:"depois do almoço",type:"FUEL",title:"ALMOÇO",details:"Salada + carbo + proteína"},
+    {period:"de tarde",type:"RECOVERY",title:"RECOVERY / PREHAB",details:"Opcional 20 min preventivo. Sem inventar leg day extra."}
+  ],
+  "sexta":[
+    {period:"de manhã",type:"TRAIN",title:"NATAÇÃO LEVE",details:"Técnica/aeróbio · deixar ombro vivo para a musculação"},
+    {period:"de manhã",type:"FUEL",title:"CAFÉ / RECOVERY",details:"Crepioca ou equivalente"},
+    {period:"fim da manhã",type:"WORK",title:"AULA",details:"09:40–12:40 · barrinha"},
+    {period:"depois do almoço",type:"FUEL",title:"ALMOÇO",details:"Salada + carbo adequado + proteína"},
+    {period:"de tarde",type:"TRAIN",title:"OMBROS",details:"Hipertrofia principal"},
+    {period:"fim da tarde",type:"FUEL",title:"REFEIÇÃO",details:"Crepioca ou omelete + carbo"}
+  ],
+  "sábado":[
+    {period:"de manhã",type:"TRAIN",title:"BRICK OU LONGÃO",details:"20–30 km bike + corrida T2 OU corrida longa"},
+    {period:"de manhã",type:"FUEL",title:"INTRA",details:"Go! isotônico durante bike; ajustar ao volume"},
+    {period:"depois do almoço",type:"FUEL",title:"RECOVERY",details:"Carbo + proteína + hidratação"}
+  ],
+  "domingo":[
+    {period:"de manhã",type:"TRAIN",title:"BIKE LONGA OU VELÓDROMO",details:"30–60 km estrada OU 20–30 km velódromo"},
+    {period:"de manhã",type:"FUEL",title:"INTRA",details:"Consumir a garrafa toda na bike"},
+    {period:"depois do almoço",type:"FUEL",title:"RECOVERY",details:"Repor carbo, proteína, líquido e sódio"}
+  ]
+};
+
+const workouts={
+  "PEITO + COSTAS":[
+    ["Supino inclinado halteres","4x8","30kg"],
+    ["Supino reto halteres","3x10","30kg"],
+    ["Crossover alto → baixo","3x12","RIR 2"],
+    ["Crossover baixo → alto","2x12","RIR 2"],
+    ["Puxada superior","3x10","RIR 2"],
+    ["Remada sentada fechada","3x10","RIR 2"],
+    ["Pulldown braços estendidos","2x12","RIR 2"],
+    ["Face pull","2x15","leve/mod."]
+  ],
+  "PERNAS / FORTALECIMENTO":[
+    ["Hip Thrust","3x8","RPE 6–7"],
+    ["Mesa flexora","3x10","RPE 6–7"],
+    ["Stiff","3x8","RPE 6–7"],
+    ["Step-up","3x10","RPE 6–7"],
+    ["Abdução de quadril","3x15","RPE 6–7"],
+    ["Cadeira extensora isométrica","3x30s","controle total"],
+    ["Panturrilha","4x15","RPE 6–7"]
+  ],
+  "BRAÇOS":[
+    ["Rosca direta apoiada","3x10","RIR 2"],
+    ["Rosca martelo","3x10","RIR 2"],
+    ["Rosca inclinada/sentada","2x12","RIR 2"],
+    ["Tríceps corda","3x12","RIR 2"],
+    ["Tríceps francês no cabo","3x12","RIR 2"],
+    ["Tríceps testa com corda","2x10","RIR 1–2"]
+  ],
+  "OMBROS":[
+    ["Desenvolvimento halteres","4x8","28kg"],
+    ["Elevação lateral","4x12","12kg"],
+    ["Crucifixo inverso","3x15","RIR 2"],
+    ["Face pull","3x15","RIR 2"],
+    ["Encolhimento halteres","3x12","36kg"]
+  ]
+};
+
+let schedule=JSON.parse(localStorage.getItem("trainFuelScheduleV02")||"null")||structuredClone(defaultSchedule);
+try{
+  const imported=JSON.parse(localStorage.getItem("tfImportedData")||"null");
+  if(imported){
+    if(imported.config) appConfig=imported.config;
+    if(imported.schedule) schedule=imported.schedule;
+    if(imported.workouts) importedWorkoutRows=imported.workouts;
+    if(imported.nutrition) nutritionRows=imported.nutrition;
+    if(imported.alternatives) alternativesRows=imported.alternatives;
+  }
+}catch(e){}
+
+function save(){localStorage.setItem("trainFuelScheduleV02",JSON.stringify(schedule))}
+function switchTab(id){
+  document.querySelectorAll(".tab").forEach(b=>b.classList.toggle("active",b.dataset.tab===id));
+  document.querySelectorAll(".screen").forEach(s=>s.classList.toggle("active",s.id===id));
+}
+document.querySelectorAll(".tab").forEach(b=>b.onclick=()=>switchTab(b.dataset.tab));
+
+function fmtDate(d){
+  return d.toLocaleDateString("pt-BR",{weekday:"short",day:"2-digit",month:"short"}).toUpperCase();
+}
+function currentDayKey(){return DAYNAMES[new Date().getDay()]}
+function currentPeriod(){
+  const h=new Date().getHours();
+  if(h<8) return "bem cedo";
+  if(h<10) return "de manhã";
+  if(h<13) return "fim da manhã";
+  if(h<15) return "depois do almoço";
+  if(h<17) return "de tarde";
+  if(h<19) return "fim da tarde";
+  return "de noite";
+}
+function renderClock(){
+  const d=new Date();
+  todayDate.textContent=fmtDate(d);
+  liveClock.textContent=d.toLocaleTimeString("pt-BR",{hour:"2-digit",minute:"2-digit"});
+}
+
+
+function raceDayAdjustment(day,event){
+  const phase=racePhaseForDate(new Date()), type=raceType();
+  if(phase==="POST_RACE_RECOVERY"){
+    if(event.type==="TRAIN") return {details:"RECOVERY WEEK · leve/técnico · sem intensidade",hide:false};
+    return {details:event.details,hide:false};
+  }
+  if(phase!=="RACE"||!type) return {details:event.details,hide:false};
+  const title=(event.title||"").toUpperCase(); let suffix="";
+  if(type==="RUN"){
+    if(day==="terça"&&title.includes("PERNAS")) suffix=" · RACE WEEK: 2 séries, RPE 6";
+    if(day==="quinta"&&title.includes("PISTA")) suffix=" · RACE WEEK: ativação curta, sem tiros máximos";
+    if(day==="sábado"&&event.type==="TRAIN") return {details:"DESCANSO / soltura mínima",hide:true};
+  }
+  if(type==="DUATHLON"){
+    if(day==="terça"&&title.includes("PERNAS")) suffix=" · RACE WEEK: 2 séries, RPE 6";
+    if(day==="quinta"&&title.includes("PISTA")) suffix=" · RACE WEEK: ativação curta";
+    if(day==="sexta"&&event.type==="TRAIN") suffix=" · leve, sem gerar fadiga";
+    if(day==="sábado"&&event.type==="TRAIN") return {details:"DESCANSO / ativação mínima",hide:true};
+  }
+  if(type==="TRIATHLON"){
+    if(day==="segunda"&&title.includes("PEITO")) suffix=" · RACE WEEK: 2 séries, RIR 3";
+    if(day==="segunda"&&title.includes("NATAÇÃO")) suffix=" · técnica leve, volume reduzido";
+    if(day==="terça"&&title.includes("PERNAS")) suffix=" · RACE WEEK: 2 séries, RPE 6";
+    if(day==="quarta"&&title.includes("BRAÇOS")) suffix=" · RACE WEEK: 2 séries, RIR 3";
+    if(day==="quarta"&&title.includes("NATAÇÃO")) suffix=" · ritmo curto + técnica";
+    if(day==="quinta"&&title.includes("PISTA")) suffix=" · ativação curta, sem tiros máximos";
+    if(day==="sexta"&&title.includes("NATAÇÃO")) suffix=" · soltura técnica curta";
+    if(day==="sexta"&&title.includes("OMBROS")) return {details:"OFF para preservar a prova",hide:true};
+    if(day==="sábado"&&event.type==="TRAIN") return {details:"DESCANSO / ativação mínima",hide:true};
+  }
+  return {details:(event.details||"")+suffix,hide:false};
+}
+function raceNutritionExtras(day){
+  const phase=racePhaseForDate(new Date());
+  if(phase==="RACE"&&(day==="sexta"||day==="sábado")){
+    return [
+      {period:"depois do almoço",type:"FUEL",title:"CARBO LOAD",details:"Aumentar carboidrato nas refeições; manter hidratação.",required:1},
+      {period:"fim da tarde",type:"FUEL",title:"CARBO LOAD",details:"Carbo alto; evitar exagero de gordura/fibra.",required:1}
+    ];
+  }
+  if(phase==="POST_RACE_RECOVERY"){
+    return [{period:"de manhã",type:"RECOVERY",title:"RECOVERY WEEK",details:"Sono, hidratação, carbo suficiente e sessões leves.",required:1}];
+  }
+  return [];
+}
+function raceWorkoutReduction(workout,setsText,loadText){
+  const phase=racePhaseForDate(new Date()), type=raceType();
+  if(phase==="POST_RACE_RECOVERY"){
+    const n=setCount(setsText), reps=String(setsText).replace(/^\d+x/,"");
+    return [n?`2x${reps}`:setsText,"RECOVERY · RIR 3–4"];
+  }
+  if(phase!=="RACE"||!type) return [setsText,loadText];
+  let reduce=false;
+  if((type==="RUN"||type==="DUATHLON")&&workout==="PERNAS / FORTALECIMENTO") reduce=true;
+  if(type==="TRIATHLON"&&["PEITO + COSTAS","PERNAS / FORTALECIMENTO","BRAÇOS","OMBROS"].includes(workout)) reduce=true;
+  if(!reduce) return [setsText,loadText];
+  const n=setCount(setsText), reps=String(setsText).replace(/^\d+x/,"");
+  return [n?`2x${reps}`:setsText,type==="TRIATHLON"?"RACE WEEK · RIR 3":"RACE WEEK · RPE 6"];
+}
+
+function nutritionProfileForDay(day){
+  if(day==="sábado"||day==="domingo"){
+    const opt=weekendSelections[day];
+    const row=alternativesRows.find(r=>r[0]===day&&r[1]===opt);
+    return row?.[4]||"LONG/BRICK";
+  }
+  if(day==="terça"||day==="quinta") return "HARD DAY";
+  if(day==="segunda"||day==="quarta"||day==="sexta") return "DOUBLE DAY";
+  return "MODERATE";
+}
+function selectedTrainingItems(day){
+  let base=(schedule[day]||[]).filter(e=>e.type!=="FUEL");
+  if(day==="sábado"||day==="domingo"){
+    const sel=weekendSelections[day];
+    base=base.filter(e=>!e.optionGroup || e.optionValue===sel || e.title===sel);
+    if(day==="sábado") base=base.filter(e=>e.type!=="TRAIN" || e.title.includes(sel==="BRICK"?"BRICK":"LONG"));
+    if(day==="domingo") base=base.filter(e=>e.type!=="TRAIN" || e.title.includes(sel==="ROAD"?"ROAD":"VELO"));
+  }
+  if(racePhaseForDate(new Date())==="RACE" && day==="domingo" && raceType()){
+    return [{period:"de manhã",type:"TRAIN",title:`RACE · ${raceType()}`,details:"PROVA · prioridade máxima da semana"}];
+  }
+  const out=[];
+  base.forEach(e=>{
+    const adj=raceDayAdjustment(day,e);
+    if(!adj.hide) out.push({...e,details:adj.details});
+  });
+  return out;
+}
+function nutritionItemsForDay(day){
+  const profile=nutritionProfileForDay(day);
+  const base=nutritionRows.filter(r=>r[0]===profile).map(r=>({
+    period:r[1],type:"FUEL",title:r[2],details:r[3],required:Number(r[4]||0)
+  }));
+  return [...base,...raceNutritionExtras(day)];
+}
+function trainingLoadScore(day){
+  const phase=racePhaseForDate(new Date());
+  if(phase==="POST_RACE_RECOVERY") return 35;
+  if(phase==="RACE" && day==="domingo") return 100;
+  if(day==="sábado"||day==="domingo"){
+    const row=alternativesRows.find(r=>r[0]===day&&r[1]===weekendSelections[day]);
+    if(row) return Number(row[5]||70);
+  }
+  let points=0;
+  selectedTrainingItems(day).filter(e=>e.type==="TRAIN").forEach(e=>{
+    const t=e.title.toUpperCase();
+    if(t.includes("PISTA")) points+=42;
+    else if(t.includes("NATAÇÃO PRINCIPAL")) points+=24;
+    else if(t.includes("NATAÇÃO")) points+=16;
+    else if(t.includes("PERNAS")) points+=28;
+    else if(t.includes("PEITO")) points+=24;
+    else if(t.includes("BRAÇOS")) points+=18;
+    else if(t.includes("OMBROS")) points+=20;
+    else points+=20;
+  });
+  return Math.max(20,Math.min(100,Math.round(25+points*.9)));
+}
+function fuelCoverageScore(day){
+  const profile=nutritionProfileForDay(day);
+  const rows=nutritionRows.filter(r=>r[0]===profile);
+  const required=rows.filter(r=>Number(r[4]||0)===1).length;
+  const expected={"HARD DAY":8,"DOUBLE DAY":6,"MODERATE":3,"LONG/BRICK":4}[profile]||required||1;
+  return Math.min(100,Math.round((required/expected)*100));
+}
+function renderWeekendChoices(){
+  const day=currentDayKey();
+  const box=document.getElementById("weekendChoice");
+  if(day!=="sábado"&&day!=="domingo"){box.style.display="none";return;}
+  box.style.display="flex";
+  const opts=day==="sábado"?["BRICK","LONG RUN"]:["ROAD","VELODROME"];
+  box.innerHTML=`<span class="badge">${day==="sábado"?"SAT":"SUN"} MODE</span>`+
+    opts.map(o=>`<button class="choice-btn ${weekendSelections[day]===o?"active":""}" data-today-choice="${o}">${o}</button>`).join("");
+  box.querySelectorAll("[data-today-choice]").forEach(b=>b.onclick=()=>setWeekendChoice(day,b.dataset.todayChoice));
+}
+function setWeekendChoice(day,choice){
+  weekendSelections[day]=choice;
+  localStorage.setItem(day==="sábado"?"tfWeekendSat":"tfWeekendSun",choice);
+  renderToday();renderWeek();renderWeekendChoices();renderWeekendButtons();
+}
+function renderWeekendButtons(){
+  document.querySelectorAll("[data-choice-day]").forEach(b=>{
+    b.classList.toggle("active",weekendSelections[b.dataset.choiceDay]===b.dataset.choice);
+    b.onclick=()=>setWeekendChoice(b.dataset.choiceDay,b.dataset.choice);
+  });
+}
+function initRecoveryUI(){
+  const key=dateKey();
+  const saved=JSON.parse(localStorage.getItem(`tfRecovery:${key}`)||"null")||{sleep:3,fatigue:3,energy:3};
+  sleepRange.value=saved.sleep; fatigueRange.value=saved.fatigue; energyRange.value=saved.energy;
+  const sync=()=>{sleepVal.textContent=sleepRange.value+"/5";fatigueVal.textContent=fatigueRange.value+"/5";energyVal.textContent=energyRange.value+"/5";};
+  [sleepRange,fatigueRange,energyRange].forEach(x=>x.oninput=sync); sync();
+  saveRecovery.onclick=()=>{
+    localStorage.setItem(`tfRecovery:${key}`,JSON.stringify({sleep:Number(sleepRange.value),fatigue:Number(fatigueRange.value),energy:Number(energyRange.value)}));
+    renderToday();renderWorkout();
+  };
+}
+function renderPerception(){
+  const sessions=selectedTrainingItems(currentDayKey()).filter(e=>e.type==="TRAIN");
+  sessionSelect.innerHTML=sessions.length?sessions.map((s,i)=>`<option value="${i}">${s.title}</option>`).join(""):`<option>SEM TREINO</option>`;
+  const feels=JSON.parse(localStorage.getItem(`tfFeel:${dateKey()}`)||"{}");
+  const update=()=>{
+    const idx=sessionSelect.value;
+    const val=feels[idx];
+    perceptionButtons.querySelectorAll("button").forEach(b=>b.classList.toggle("active",b.dataset.feel===val));
+  };
+  sessionSelect.onchange=update; update();
+  perceptionButtons.querySelectorAll("button").forEach(b=>b.onclick=()=>{
+    if(!sessions.length)return;
+    feels[sessionSelect.value]=b.dataset.feel;
+    localStorage.setItem(`tfFeel:${dateKey()}`,JSON.stringify(feels));
+    update();
+  });
+}
+function renderMiniCalendar(){
+  const now=new Date(), year=now.getFullYear(), month=now.getMonth();
+  const first=new Date(year,month,1), last=new Date(year,month+1,0);
+  const start=cycleStartDate();
+  const end=new Date(start); end.setDate(end.getDate()+Number(appConfig.cycle_weeks||4)*7-1);
+  cycleDates.textContent=`${start.toLocaleDateString("pt-BR",{day:"2-digit",month:"2-digit"})}–${end.toLocaleDateString("pt-BR",{day:"2-digit",month:"2-digit"})}`;
+  const heads=["D","S","T","Q","Q","S","S"].map(x=>`<div class="cal-weekday">${x}</div>`).join("");
+  let cells="";
+  for(let i=0;i<first.getDay();i++) cells+=`<div class="cal-cell"></div>`;
+  for(let d=1;d<=last.getDate();d++){
+    const date=new Date(year,month,d);
+    const inCycle=date>=new Date(start.getFullYear(),start.getMonth(),start.getDate()) && date<=end;
+    let wk="";
+    if(inCycle){
+      const diff=Math.floor((date-start)/86400000);
+      wk=Math.floor(diff/7)+1;
+    }
+    const today=d===now.getDate();
+    cells+=`<div class="cal-cell ${inCycle?"cycle":""} ${today?"today":""} ${wk===4?"deload":""}">${d}${wk?`<br>W${wk}`:""}</div>`;
+  }
+  miniCalendar.innerHTML=`<div class="cal-grid">${heads}${cells}</div>`;
+}
+
+
+function setRaceMode(type){
+  if(type==="OFF") raceMode={enabled:false,type:null,raceSunday:null};
+  else raceMode={enabled:true,type,raceSunday:isoDateLocal(upcomingSunday(new Date()))};
+  localStorage.setItem("tfRaceMode",JSON.stringify(raceMode));
+  renderRaceUI();renderToday();renderWeek();renderWorkout();
+}
+function renderRaceUI(){
+  if(!document.getElementById("raceDangerButton")) return;
+  const phase=racePhaseForDate(new Date());
+  raceDangerButton.classList.toggle("active",raceMode.enabled);
+  raceOptions.classList.toggle("open",raceMode.enabled);
+  document.querySelectorAll(".race-option").forEach(b=>b.classList.toggle("active",raceMode.enabled&&b.dataset.race===raceMode.type));
+  if(!raceMode.enabled) raceStatus.textContent="RACE MODE: OFF";
+  else if(phase==="POST_RACE_RECOVERY") raceStatus.innerHTML=`<span class="race-tag">RECOVERY WEEK</span><br>Após ${raceMode.type} · intensidade reduzida automaticamente.`;
+  else raceStatus.innerHTML=`<span class="race-tag">${raceMode.type} · RACE WEEK</span><br>Prova: domingo ${new Date(raceMode.raceSunday+"T00:00:00").toLocaleDateString("pt-BR")} · sexta e sábado com CARBO LOAD.`;
+}
+function initRaceUI(){
+  if(!document.getElementById("raceDangerButton")) return;
+  raceDangerButton.onclick=()=>{
+    if(!raceMode.enabled){
+      raceMode={enabled:true,type:"RUN",raceSunday:isoDateLocal(upcomingSunday(new Date()))};
+      localStorage.setItem("tfRaceMode",JSON.stringify(raceMode));
+    }
+    raceOptions.classList.toggle("open");
+    renderRaceUI();renderToday();renderWeek();renderWorkout();
+  };
+  document.querySelectorAll(".race-option").forEach(b=>b.onclick=()=>setRaceMode(b.dataset.race));
+  renderRaceUI();
+}
+
+function renderToday(){
+  const now=new Date(), key=currentDayKey();
+  const base=selectedTrainingItems(key);
+  const items=[...base,...nutritionItemsForDay(key)].sort((a,b)=>periodRank[a.period]-periodRank[b.period]);
+  const p=currentPeriod(), pr=periodRank[p];
+  dayTitle.textContent=PTDAY[now.getDay()]+" "+String(now.getDate()).padStart(2,"0");
+
+  const next=items.find(x=>periodRank[x.period]>=pr);
+  nextMission.textContent=next?`${next.period.toUpperCase()} · ${next.title}`:"DAY COMPLETE";
+
+  const ready=readinessState();
+  timeline.innerHTML="";
+  items.forEach((e,i)=>{
+    const el=document.createElement("div");
+    const isNow=e.period===p;
+    let details=e.details||"";
+    if(e.type==="TRAIN" && ready.state==="CAUTION") details+=" · CAUTION: sem extras/progressão";
+    if(e.type==="TRAIN" && ready.state==="RECOVERY") details+=" · RECOVERY MODE: reduzir intensidade/volume; se houver sintomas, priorizar descanso";
+    el.className="event"+(isNow?" now":"");
+    el.innerHTML=`<div class="time">${e.period.toUpperCase()}</div><div><div class="title">${e.title}</div><small>${details}</small></div><div class="kind">${e.type}</div>`;
+    timeline.appendChild(el);
+  });
+
+  const load=trainingLoadScore(key);
+  const fuel=fuelCoverageScore(key);
+  const recovery=ready.score;
+  loadBadge.textContent=load>=80?"HARD":load>=55?"MOD":"EASY";
+  loadVal.textContent=load+"%"; fuelVal.textContent=fuel+"%"; recoveryVal.textContent=recovery+"%";
+  loadBar.style.width=load+"%"; fuelBar.style.width=fuel+"%"; recoveryBar.style.width=recovery+"%";
+
+  smartBanner.className="smart-banner "+(ready.state==="CAUTION"?"caution":ready.state==="RECOVERY"?"recovery":"");
+  const racePhase=racePhaseForDate(new Date());
+  const raceTxt=racePhase==="RACE" ? ` · RACE WEEK ${raceType()}` : racePhase==="POST_RACE_RECOVERY" ? " · POST-RACE RECOVERY" : "";
+  smartBanner.textContent=`TODAY: ${ready.state} · RECOVERY ${ready.score}%${raceTxt}`;
+  dayRules.innerHTML=ready.state==="NORMAL"
+    ?"• Seguir o plano do ciclo.<br>• Status calculado a partir da carga do dia + recovery check + percepção do dia anterior.<br>• Não é uma métrica médica."
+    :ready.state==="CAUTION"
+      ?"• Reduzir 1 série na musculação.<br>• Sem progressão extra de carga.<br>• Evitar adicionar volume fora do plano."
+      :"• Musculação limitada a 2 séries por exercício.<br>• Sem progressão de carga.<br>• Treino aeróbio deve ser tratado como recuperação se houver fadiga/sintomas.";
+  renderWeekendChoices();
+  renderPerception();
+  renderMiniCalendar();
+}
+function renderWeek(){
+  weekGrid.innerHTML="";
+  ["segunda","terça","quarta","quinta","sexta","sábado","domingo"].forEach(k=>{
+    const c=document.createElement("div"); c.className="daycol";
+    const raceNote=racePhaseForDate(new Date())==="RACE" ? (k==="sexta"||k==="sábado" ? " · CARBO LOAD" : "") : racePhaseForDate(new Date())==="POST_RACE_RECOVERY" ? " · RECOVERY" : "";
+    c.innerHTML=`<h3>${k.toUpperCase()}</h3><div class="note">${nutritionProfileForDay(k)}${raceNote}</div>`;
+    selectedTrainingItems(k).filter(e=>e.type==="TRAIN").forEach(e=>{
+      c.innerHTML+=`<div class="mini"><b>${e.period.toUpperCase()}</b><br>${e.title}<br><span class="note">${e.details}</span></div>`;
+    });
+    weekGrid.appendChild(c);
+  });
+  renderWeekendButtons();
+}
+function renderWorkoutOptions(){
+  const todayWorkout=workoutForToday();
+  workoutSelect.innerHTML=todayWorkout
+    ? `<option>${todayWorkout}</option>`
+    : `<option>RECOVERY / SEM MUSCULAÇÃO</option>`;
+  workoutSelect.disabled=true;
+  renderWorkout();
+}
+function setCount(txt){
+  const m=txt.match(/^(\d+)x/); return m?Number(m[1]):0;
+}
+function dateKey(){
+  const d=new Date();
+  return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`;
+}
+function setCount(txt){
+  const m=String(txt||"").match(/^(\d+)x/); return m?Number(m[1]):0;
+}
+function readinessState(){
+  const key=dateKey();
+  const check=JSON.parse(localStorage.getItem(`tfRecovery:${key}`)||"null");
+  const prev=new Date(); prev.setDate(prev.getDate()-1);
+  const pk=`${prev.getFullYear()}-${String(prev.getMonth()+1).padStart(2,"0")}-${String(prev.getDate()).padStart(2,"0")}`;
+  const perceptions=JSON.parse(localStorage.getItem(`tfFeel:${pk}`)||"{}");
+  let worstPenalty=0;
+  Object.values(perceptions).forEach(v=>{
+    const p={"FÁCIL":0,"BOM":5,"PESADO":15,"MORRI":25}[v]||0;
+    worstPenalty=Math.max(worstPenalty,p);
+  });
+  if(!check) return {score:70,state:"NORMAL",adjust:0};
+  const base=((Number(check.sleep)+(6-Number(check.fatigue))+Number(check.energy))/15)*100;
+  const score=Math.max(0,Math.min(100,Math.round(base-worstPenalty)));
+  if(score<50) return {score,state:"RECOVERY",adjust:2};
+  if(score<70) return {score,state:"CAUTION",adjust:1};
+  return {score,state:"NORMAL",adjust:0};
+}
+function adjustedSetsText(setsText){
+  const r=readinessState();
+  const n=setCount(setsText);
+  if(!n || r.adjust===0) return setsText;
+  const reps=String(setsText).replace(/^\d+x/,"");
+  const newN=r.adjust===1?Math.max(2,n-1):Math.min(2,n);
+  return `${newN}x${reps}`;
+}
+function renderWorkout(){
+  const k=workoutForToday();
+  if(!k){
+    workoutList.innerHTML=`<div class="exercise"><b>SEM MUSCULAÇÃO HOJE</b><div class="note" style="margin-top:6px">A aba WORKOUT acompanha automaticamente o planejamento do dia.</div></div>`;
+    resetSets.style.display="none";
+    return;
+  }
+  resetSets.style.display="";
+  let arr=workouts[k]||[];
+  const imported=importedWorkoutRows.filter(r=>r.workout===k);
+  if(imported.length){
+    arr=imported.map(r=>[r.exercise,r.w1sets||"",r.w1load||""]);
+  }
+  const cw=cycleWeekNumber();
+  const ready=readinessState();
+  workoutList.innerHTML=`<h3>${k}</h3>
+    <div class="badge" style="margin-bottom:8px">CYCLE ${String(appConfig.cycle_id||1).padStart(2,"0")} · WEEK ${String(cw).padStart(2,"0")} · ${weekLabel()}</div>
+    <div class="note">${ready.state==="NORMAL" ? "Prescrição normal do ciclo." : ready.state==="CAUTION" ? "CAUTION: volume reduzido automaticamente em 1 série por exercício e sem progressão extra." : "RECOVERY MODE: máximo de 2 séries por exercício, carga confortável e longe da falha."}</div>`;
+  arr.forEach((x,idx)=>{
+    let [setsText,loadText]=prescriptionForWeek(k,x[0],x[1],x[2]);
+    [setsText,loadText]=raceWorkoutReduction(k,setsText,loadText);
+    if(ready.adjust>0){
+      setsText=adjustedSetsText(setsText);
+      if(ready.state==="RECOVERY") loadText="RIR 3–4 / confortável";
+      if(cw===4 && ready.state!=="NORMAL") loadText="DELOAD / sem progressão";
+    }
+    const n=setCount(setsText);
+    const storageKey=`setsDaily:${dateKey()}:${k}:${idx}`;
+    const done=JSON.parse(localStorage.getItem(storageKey)||"[]");
+    const e=document.createElement("div");e.className="exercise";
+    e.innerHTML=`<div class="exercise-head"><b>${x[0]}</b><span>${setsText} · ${loadText}</span></div>
+      <div class="sets">${Array.from({length:n},(_,i)=>`<button class="set ${done[i]?"done":""}" data-i="${i}" data-ex="${idx}">${i+1}</button>`).join("")}</div>`;
+    workoutList.appendChild(e);
+  });
+  workoutList.querySelectorAll(".set").forEach(b=>b.onclick=()=>{
+    const ex=Number(b.dataset.ex), i=Number(b.dataset.i);
+    const storageKey=`setsDaily:${dateKey()}:${k}:${ex}`;
+    const done=JSON.parse(localStorage.getItem(storageKey)||"[]");
+    done[i]=!done[i]; localStorage.setItem(storageKey,JSON.stringify(done)); renderWorkout();
+  });
+}
+
+resetSets.onclick=()=>{
+  const k=workoutForToday();
+  if(!k) return;
+  workouts[k].forEach((_,i)=>localStorage.removeItem(`setsDaily:${dateKey()}:${k}:${i}`));
+  renderWorkout();
+};
+
+
+function sheetRows(wb,name){
+  const ws=wb.Sheets[name]; if(!ws)return [];
+  return XLSX.utils.sheet_to_json(ws,{defval:""});
+}
+function normalizeKey(k){return String(k).trim().toLowerCase().replace(/\s+/g,"");}
+function importWorkbookData(file){
+  const reader=new FileReader();
+  reader.onload=e=>{
+    try{
+      if(typeof XLSX==="undefined") throw new Error("Leitor XLSX não carregou. Verifique a conexão.");
+      const wb=XLSX.read(e.target.result,{type:"array",cellDates:true});
+      const cfgRows=sheetRows(wb,"CONFIG");
+      const config={...appConfig};
+      cfgRows.forEach(r=>{
+        const key=r.CHAVE||r.chave, val=r.VALOR??r.valor;
+        if(!key)return;
+        if(key==="cycle_start" && val instanceof Date) config[key]=val.toISOString().slice(0,10);
+        else config[key]=val;
+      });
+
+      const schedRows=sheetRows(wb,"SCHEDULE");
+      const newSchedule={};
+      schedRows.forEach(r=>{
+        const day=String(r.DAY||"").toLowerCase(); if(!day)return;
+        newSchedule[day]=newSchedule[day]||[];
+        newSchedule[day].push({
+          period:r.PERIOD,type:r.TYPE,title:r.TITLE,details:r.DETAILS,
+          optionGroup:r.OPTION_GROUP||"",optionValue:r.OPTION_VALUE||""
+        });
+      });
+
+      const wr=sheetRows(wb,"WORKOUTS").map(r=>({
+        day:String(r.DAY||"").toLowerCase(),workout:r.WORKOUT,exercise:r.EXERCISE,
+        w1sets:r["W1 SETS"],w1load:r["W1 LOAD"],w2sets:r["W2 SETS"],w2load:r["W2 LOAD"],
+        w3sets:r["W3 SETS"],w3load:r["W3 LOAD"],w4sets:r["W4 SETS"],w4load:r["W4 LOAD"],notes:r.NOTES
+      }));
+      const nr=sheetRows(wb,"NUTRITION").map(r=>[r.PROFILE,r.PERIOD,r.TITLE,r.DETAILS,Number(r.REQUIRED||0)]);
+      const ar=sheetRows(wb,"ALTERNATIVES").map(r=>[String(r.DAY||"").toLowerCase(),r.OPTION,r.TITLE,r.DETAILS,r.NUTRITION_PROFILE,Number(r.LOAD_SCORE||70)]);
+
+      appConfig=config;
+      if(Object.keys(newSchedule).length) schedule=newSchedule;
+      if(wr.length) importedWorkoutRows=wr;
+      if(nr.length) nutritionRows=nr;
+      if(ar.length) alternativesRows=ar;
+      localStorage.setItem("tfImportedData",JSON.stringify({config:appConfig,schedule,workouts:importedWorkoutRows,nutrition:nutritionRows,alternatives:alternativesRows}));
+      dataStatus.textContent=`SOURCE: ${file.name} · IMPORT OK`;
+      setCycle();renderToday();renderWeek();renderWorkoutOptions();renderMiniCalendar();
+    }catch(err){
+      dataStatus.textContent="IMPORT ERROR: "+err.message;
+    }
+  };
+  reader.readAsArrayBuffer(file);
+}
+
+function setupEditor(){
+  const days=["segunda","terça","quarta","quinta","sexta","sábado","domingo"];
+  editDay.innerHTML=days.map(d=>`<option value="${d}">${d.toUpperCase()}</option>`).join("");
+  addEvent.onclick=()=>{
+    const d=editDay.value;
+    schedule[d]=schedule[d]||[];
+    schedule[d].push({
+      period:editPeriod.value,
+      type:editType.value,
+      title:editTitle.value||"NOVO EVENTO",
+      details:editDetails.value||""
+    });
+    save(); renderToday(); renderWeek();
+    editTitle.value=""; editDetails.value="";
+    alert("EVENT ADDED");
+  };
+  restoreDefaults.onclick=()=>{
+    if(confirm("Restaurar cronograma padrão?")){
+      schedule=structuredClone(defaultSchedule);save();renderToday();renderWeek();alert("DEFAULTS RESTORED");
+    }
+  };
+  xlsxInput.onchange=()=>{
+    const f=xlsxInput.files?.[0];
+    if(f) importWorkbookData(f);
+  };
+  clearImportedData.onclick=()=>{
+    localStorage.removeItem("tfImportedData");
+    location.reload();
+  };
+  if(localStorage.getItem("tfImportedData")) dataStatus.textContent="SOURCE: IMPORTED XLSX (LOCAL)";
+}
+function setCycle(){
+  const w=cycleWeekNumber();
+  cycleBadge.textContent="CYCLE "+String(appConfig.cycle_id||1).padStart(2,"0")+" · WEEK "+String(w).padStart(2,"0")+" · "+weekLabel();
+}
+
+renderClock();
+initRecoveryUI();
+setInterval(()=>{renderClock();renderToday()},30000);
+setCycle();
+renderToday();
+renderWeek();
+renderWorkoutOptions();
+setupEditor();
+renderWeekendButtons();
+initRaceUI();
+
+// ===========================
+// SKULL RUN · Easter Egg Game
+// ===========================
+const skullButton=document.getElementById("skullButton");
+const gameModal=document.getElementById("gameModal");
+const gameClose=document.getElementById("gameClose");
+const gameWrap=document.getElementById("gameWrap");
+const canvas=document.getElementById("skullGame");
+const ctx=canvas.getContext("2d");
+const gameOverlay=document.getElementById("gameOverlay");
+const gameMessage=document.getElementById("gameMessage");
+const gameScoreText=document.getElementById("gameScoreText");
+
+let gameState="idle";
+let lastTime=0, score=0, speed=250, spawnTimer=0, groundOffset=0, skyOffset=0;
+let hiScore=Number(localStorage.getItem("skullRunHi")||0);
+let player={x:72,y:0,w:34,h:34,vy:0,onGround:true};
+let obstacles=[];
+const gravity=1500;
+const jumpForce=-590;
+const groundY=265;
+
+function resizeGame(){
+  const r=gameWrap.getBoundingClientRect();
+  const ratio=window.devicePixelRatio||1;
+  canvas.width=Math.max(320,Math.floor(r.width*ratio));
+  canvas.height=Math.max(220,Math.floor(r.height*ratio));
+  ctx.setTransform(ratio,0,0,ratio,0,0);
+}
+window.addEventListener("resize",()=>{if(gameModal.classList.contains("open")) resizeGame()});
+
+function openGame(){
+  gameModal.classList.add("open");
+  gameModal.setAttribute("aria-hidden","false");
+  resizeGame();
+  resetGame("idle");
+  drawGame();
+}
+function closeGame(){
+  gameModal.classList.remove("open");
+  gameModal.setAttribute("aria-hidden","true");
+  gameState="idle";
+}
+skullButton.addEventListener("click",openGame);
+gameClose.addEventListener("click",closeGame);
+gameModal.addEventListener("click",e=>{if(e.target===gameModal) closeGame()});
+
+function resetGame(state="ready"){
+  gameState=state;
+  const h=gameWrap.clientHeight;
+  player={x:Math.max(42,gameWrap.clientWidth*.10),y:h-54,w:34,h:34,vy:0,onGround:true};
+  obstacles=[];
+  score=0;
+  speed=250;
+  groundOffset=0;
+  skyOffset=0;
+  spawnTimer=800;
+  lastTime=0;
+  updateScore();
+  gameOverlay.style.display="flex";
+  gameMessage.innerHTML=state==="idle" ? "TAP / CLICK / SPACE<br>TO START" : "READY?";
+}
+
+function startGame(){
+  if(gameState==="running") return;
+  if(gameState==="gameover") resetGame("ready");
+  gameState="running";
+  gameOverlay.style.display="none";
+  lastTime=performance.now();
+  requestAnimationFrame(loopGame);
+}
+function jump(){
+  if(gameState!=="running"){ startGame(); return; }
+  if(player.onGround){
+    player.vy=jumpForce;
+    player.onGround=false;
+  }
+}
+gameWrap.addEventListener("pointerdown",e=>{e.preventDefault();jump()});
+window.addEventListener("keydown",e=>{
+  if(!gameModal.classList.contains("open")) return;
+  if(e.code==="Space"||e.code==="ArrowUp"){
+    e.preventDefault(); jump();
+  }
+  if(e.code==="Escape") closeGame();
+});
+
+function spawnObstacle(){
+  const h=gameWrap.clientHeight;
+  const types=[
+    {w:22,h:34,label:"CONE"},
+    {w:28,h:28,label:"DB"},
+    {w:18,h:46,label:"BAR"}
+  ];
+  const t=types[Math.floor(Math.random()*types.length)];
+  obstacles.push({x:gameWrap.clientWidth+20,y:h-20-t.h,w:t.w,h:t.h,label:t.label});
+}
+
+function collide(a,b){
+  const pad=4;
+  return a.x+pad < b.x+b.w-pad &&
+         a.x+a.w-pad > b.x+pad &&
+         a.y+pad < b.y+b.h-pad &&
+         a.y+a.h-pad > b.y+pad;
+}
+
+function updateGame(dt){
+  const w=gameWrap.clientWidth, h=gameWrap.clientHeight;
+  const ground=h-20;
+
+  player.vy+=gravity*dt;
+  player.y+=player.vy*dt;
+  const floor=ground-player.h;
+  if(player.y>=floor){
+    player.y=floor; player.vy=0; player.onGround=true;
+  }
+
+  speed+=7*dt;
+  groundOffset=(groundOffset+speed*dt)%48;
+  skyOffset=(skyOffset+speed*0.16*dt)%140;
+  spawnTimer-=dt*1000;
+  if(spawnTimer<=0){
+    spawnObstacle();
+    spawnTimer=Math.max(620,1250-Math.min(score,350)*1.5)+Math.random()*650;
+  }
+
+  obstacles.forEach(o=>o.x-=speed*dt);
+  obstacles=obstacles.filter(o=>o.x+o.w>-20);
+
+  for(const o of obstacles){
+    if(collide(player,o)){ gameOver(); break; }
+  }
+
+  score+=dt*10;
+  updateScore();
+}
+function updateScore(){
+  gameScoreText.textContent=`SCORE ${String(Math.floor(score)).padStart(4,"0")} · HI ${String(hiScore).padStart(4,"0")}`;
+}
+function gameOver(){
+  gameState="gameover";
+  const s=Math.floor(score);
+  if(s>hiScore){
+    hiScore=s;
+    localStorage.setItem("skullRunHi",String(hiScore));
+  }
+  updateScore();
+  gameOverlay.style.display="flex";
+  gameMessage.innerHTML=`YOU DIED<br>SCORE ${String(s).padStart(4,"0")}<br>HI ${String(hiScore).padStart(4,"0")}<br><br>TAP TO RETRY`;
+}
+
+function pxRect(x,y,w,h){ctx.fillRect(Math.round(x),Math.round(y),Math.round(w),Math.round(h))}
+function drawSkull(x,y,s){
+  const unit=s/16;
+  ctx.save();
+  ctx.translate(x,y);
+  ctx.fillStyle=getComputedStyle(document.documentElement).getPropertyValue("--ink").trim();
+  const blocks=[
+    [5,1,6,1],[3,2,10,1],[2,3,12,6],[3,9,10,2],[4,11,8,2],[5,13,2,2],[9,13,2,2]
+  ];
+  blocks.forEach(b=>pxRect(b[0]*unit,b[1]*unit,b[2]*unit,b[3]*unit));
+  ctx.fillStyle=getComputedStyle(document.documentElement).getPropertyValue("--light").trim();
+  [[4,5,3,2],[9,5,3,2],[7,8,2,2],[6,11,1,1],[8,11,1,1],[10,11,1,1]].forEach(b=>pxRect(b[0]*unit,b[1]*unit,b[2]*unit,b[3]*unit));
+  ctx.restore();
+}
+function drawObstacle(o){
+  const ink=getComputedStyle(document.documentElement).getPropertyValue("--ink").trim();
+  ctx.fillStyle=ink;
+  if(o.label==="CONE"){
+    pxRect(o.x+o.w*.35,o.y,o.w*.3,o.h*.18);
+    pxRect(o.x+o.w*.22,o.y+o.h*.18,o.w*.56,o.h*.52);
+    pxRect(o.x,o.y+o.h*.72,o.w,o.h*.28);
+  }else if(o.label==="DB"){
+    pxRect(o.x,o.y+o.h*.2,o.w*.28,o.h*.6);
+    pxRect(o.x+o.w*.72,o.y+o.h*.2,o.w*.28,o.h*.6);
+    pxRect(o.x+o.w*.25,o.y+o.h*.43,o.w*.5,o.h*.14);
+  }else{
+    pxRect(o.x+o.w*.36,o.y,o.w*.28,o.h*.78);
+    pxRect(o.x,o.y+o.h*.78,o.w,o.h*.22);
+  }
+}
+function drawGame(){
+  const w=gameWrap.clientWidth,h=gameWrap.clientHeight;
+  ctx.clearRect(0,0,w,h);
+
+  const light=getComputedStyle(document.documentElement).getPropertyValue("--light").trim();
+  const ink=getComputedStyle(document.documentElement).getPropertyValue("--ink").trim();
+  const panel=getComputedStyle(document.documentElement).getPropertyValue("--panel").trim();
+  const mid=getComputedStyle(document.documentElement).getPropertyValue("--mid").trim();
+
+  ctx.fillStyle=light;
+  ctx.fillRect(0,0,w,h);
+
+  // Parallax skyline/cloud pixels moving left: gives forward motion.
+  ctx.fillStyle=panel;
+  const skyY=[42,78,116];
+  for(let row=0;row<skyY.length;row++){
+    const spacing=140+row*34;
+    const offset=(skyOffset*(1+row*.35))%spacing;
+    for(let x=-spacing;x<w+spacing;x+=spacing){
+      const sx=x-offset;
+      pxRect(sx,skyY[row],18+row*6,5);
+      pxRect(sx+7,skyY[row]-6,10+row*4,6);
+    }
+  }
+
+  // Far horizon pixels / bushes.
+  ctx.fillStyle=mid;
+  const horizonOffset=(groundOffset*.38)%96;
+  for(let x=-96;x<w+96;x+=96){
+    const hx=x-horizonOffset;
+    pxRect(hx,h-49,28,5);
+    pxRect(hx+8,h-55,12,6);
+  }
+
+  // Ground line.
+  ctx.fillStyle=ink;
+  pxRect(0,h-20,w,4);
+
+  // Moving ground dashes: strongest speed cue.
+  const dashOffset=groundOffset%48;
+  for(let x=-48;x<w+48;x+=48){
+    pxRect(x-dashOffset,h-10,22,3);
+  }
+
+  // Tiny dust trail behind the skull while running.
+  if(gameState==="running" && player.onGround){
+    ctx.fillStyle=mid;
+    const phase=Math.floor(performance.now()/90)%3;
+    pxRect(player.x-10-phase*4,h-31,4,4);
+    pxRect(player.x-22-phase*3,h-26,3,3);
+  }
+
+  // Subtle running bob: the skull stays in its lane but visually strides.
+  const runBob=(gameState==="running" && player.onGround)
+    ? (Math.floor(performance.now()/100)%2===0 ? 0 : 2)
+    : 0;
+
+  drawSkull(player.x,player.y-runBob,player.w);
+  obstacles.forEach(drawObstacle);
+}
+function loopGame(ts){
+  if(gameState!=="running"){ drawGame(); return; }
+  const dt=Math.min(.032,(ts-lastTime)/1000||0);
+  lastTime=ts;
+  updateGame(dt);
+  drawGame();
+  if(gameState==="running") requestAnimationFrame(loopGame);
+}
+
+</script>
+</body>
+</html>
